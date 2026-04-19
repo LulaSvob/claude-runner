@@ -178,13 +178,11 @@ addGlobalOpts(
     : createNotifier({ provider: "none", ntfy: storyConfig.notify.ntfy });
 
   const logsDir = resolve(RUNNER_ROOT, "logs", opts.project, "single-story");
-  const completedDir = resolve(logsDir, "completed");
 
   const outcome = await runStory(storyPath, storyConfig, {
     notifier,
     logger,
     logsDir,
-    completedDir,
   });
 
   if (outcome.status === "success") {

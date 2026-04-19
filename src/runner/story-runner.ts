@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { execFile as execFileCb } from "node:child_process";
 import { promisify } from "node:util";
 import { runStory as runClaudeSession } from "../sdk/claude-session.js";
@@ -119,10 +119,9 @@ export async function runStory(
     notifier: Notifier;
     logger: Logger;
     logsDir: string;
-    completedDir: string;
   }
 ): Promise<StoryOutcome> {
-  const { logger, notifier, logsDir, completedDir } = deps;
+  const { logger, notifier, logsDir } = deps;
   const storyName = storyPath.replace(/\.md$/, "").split("/").pop()!;
   const scope = deriveScope(storyName);
   const timer = new Timer();
@@ -150,7 +149,6 @@ export async function runStory(
       await git.forceBranch(config.projectPath, config.branch);
 
       mkdirSync(logsDir, { recursive: true });
-      mkdirSync(completedDir, { recursive: true });
 
       const sink = new LogSink(logsDir, storyName);
       const attemptTimer = new Timer();
@@ -206,11 +204,6 @@ export async function runStory(
         } else {
           logger.info(`No changes produced for: ${storyName}`);
         }
-
-        writeFileSync(
-          resolve(completedDir, `${storyName}.done`),
-          new Date().toISOString() + "\n"
-        );
 
         return {
           status: "success",

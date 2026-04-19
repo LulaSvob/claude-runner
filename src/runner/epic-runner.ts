@@ -24,7 +24,6 @@ export async function runEpic(
   const { logger, notifier, logsBaseDir, startFrom, dryRun } = deps;
   const epicName = epicConfig.epic.name;
   const logsDir = resolve(logsBaseDir, epicName);
-  const completedDir = resolve(logsDir, "completed");
   const timer = new Timer();
 
   let completed = 0;
@@ -72,8 +71,7 @@ export async function runEpic(
     const storyName = basename(storyPath, ".md");
     const step = i + 1;
 
-    const skipResult = await shouldSkipStory(storyName, {
-      completedDir,
+    const skipResult = await shouldSkipStory(storyPath, {
       projectPath: storyConfig.projectPath,
       stepIndex: step,
       startFrom,
@@ -123,7 +121,6 @@ export async function runEpic(
       notifier,
       logger,
       logsDir,
-      completedDir,
     });
 
     if (outcome.status === "success") {

@@ -1,13 +1,26 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { hasCommitForStory } from "./operations.js";
 
-export type SkipReason = "done-marker" | "git-history" | "before-start";
+export type SkipReason = "story-done" | "story-fixed" | "before-start";
+
+const DONE_STATUSES = ["✅ DONE", "✅ FIXED"];
+
+function readStoryStatus(storyFilePath: string): string | null {
+  if (!existsSync(storyFilePath)) return null;
+  const content = readFileSync(storyFilePath, "utf-8");
+  const match = /^\*\*Status:\*\*\s*(.+)$/m.exec(content);
+  return match?.[1]?.trim() ?? null;
+}
+
+export function isStoryDone(storyFilePath: string): boolean {
+  const status = readStoryStatus(storyFilePath);
+  if (!status) return false;
+  return DONE_STATUSES.some((s) => status.includes(s));
+}
 
 export async function shouldSkipStory(
-  storyName: string,
+  storyRelativePath: string,
   opts: {
-    completedDir: string;
     projectPath: string;
     stepIndex: number;
     startFrom: number;
@@ -17,30 +30,15 @@ export async function shouldSkipStory(
     return { skip: true, reason: "before-start" };
   }
 
-  const donePath = resolve(opts.completedDir, `${storyName}.done`);
-  if (existsSync(donePath)) {
-    return { skip: true, reason: "done-marker" };
-  }
+  const storyFilePath = resolve(opts.projectPath, storyRelativePath);
+  const status = readStoryStatus(storyFilePath);
 
-  if (await hasCommitForStory(opts.projectPath, storyName)) {
-    return { skip: true, reason: "git-history" };
+  if (status?.includes("✅ DONE")) {
+    return { skip: true, reason: "story-done" };
+  }
+  if (status?.includes("✅ FIXED")) {
+    return { skip: true, reason: "story-fixed" };
   }
 
   return { skip: false };
-}
-
-export function markDone(completedDir: string, storyName: string): void {
-  const donePath = resolve(completedDir, `${storyName}.done`);
-  const { writeFileSync, mkdirSync } = require("node:fs") as typeof import("node:fs");
-  mkdirSync(completedDir, { recursive: true });
-  writeFileSync(donePath, new Date().toISOString() + "\n");
-}
-
-export function getDoneTimestamp(
-  completedDir: string,
-  storyName: string
-): string | null {
-  const donePath = resolve(completedDir, `${storyName}.done`);
-  if (!existsSync(donePath)) return null;
-  return readFileSync(donePath, "utf-8").trim();
 }
