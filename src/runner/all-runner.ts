@@ -1,4 +1,5 @@
 import { resolve } from "node:path";
+import { mkdirSync, createWriteStream } from "node:fs";
 import { runEpic } from "./epic-runner.js";
 import {
   loadGlobalConfig,
@@ -19,6 +20,7 @@ export async function runAll(opts: {
   runnerRoot: string;
   from: number;
   to: number;
+  includeOptional: boolean;
   skipFailed: boolean;
   dryRun: boolean;
   cli: CliOverrides;
@@ -28,6 +30,22 @@ export async function runAll(opts: {
   const runAllConfig = loadRunAllConfig(opts.projectName, opts.runnerRoot);
   const logger = createLogger(global.logging.level);
   const timer = new Timer();
+
+  const runAllLogDir = resolve(opts.runnerRoot, "logs", opts.projectName, "run-all");
+  mkdirSync(runAllLogDir, { recursive: true });
+  const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  const runLogPath = resolve(runAllLogDir, `run-${ts}.log`);
+  const runLogStream = createWriteStream(runLogPath, { flags: "w" });
+  const origLogInfo = logger.info.bind(logger);
+  const origLogError = logger.error.bind(logger);
+  const logAndFile = (level: "info" | "error", ...args: Parameters<typeof logger.info>) => {
+    if (level === "error") origLogError(...args);
+    else origLogInfo(...args);
+    runLogStream.write(`[${new Date().toISOString()}] ${String(args[0])}\n`);
+  };
+  logger.info = ((...args: Parameters<typeof logger.info>) => logAndFile("info", ...args)) as typeof logger.info;
+  logger.error = ((...args: Parameters<typeof logger.error>) => logAndFile("error", ...args)) as typeof logger.error;
+  logger.info(`Run-all log: ${runLogPath}`);
 
   const notifier = createNotifier({
     provider: global.notify.provider,
@@ -47,10 +65,17 @@ export async function runAll(opts: {
     process.exit(1);
   }
 
-  const epics = runAllConfig.epicOrder.filter((_, i) => {
+  let epicList = runAllConfig.epicOrder.filter((_, i) => {
     const n = i + 1;
     return n >= opts.from && n <= opts.to;
   });
+
+  if (opts.includeOptional && "optional" in runAllConfig) {
+    const optional = (runAllConfig as { optional?: string[] }).optional ?? [];
+    epicList = [...epicList, ...optional];
+  }
+
+  const epics = epicList;
 
   const logsBaseDir = resolve(opts.runnerRoot, "logs", opts.projectName);
   let epicsOk = 0;
@@ -138,6 +163,8 @@ export async function runAll(opts: {
     priority: epicsFailed > 0 ? "high" : "default",
     tags: epicsFailed === 0 ? "tada" : "warning",
   });
+
+  runLogStream.end();
 
   return {
     epicsOk,

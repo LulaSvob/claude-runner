@@ -68,6 +68,7 @@ addGlobalOpts(
     .option("--from <n>", "Start from epic N (1-based)", parseInt, 1)
     .option("--to <n>", "End at epic N", parseInt, 99)
     .option("--skip-failed", "Continue past failed epics")
+    .option("--include-optional", "Include optional epics (e.g., epic-12)")
 ).action(async (opts) => {
   if (!opts.project) {
     console.error("Error: --project is required");
@@ -79,6 +80,7 @@ addGlobalOpts(
     runnerRoot: RUNNER_ROOT,
     from: opts.from,
     to: opts.to,
+    includeOptional: opts.includeOptional ?? false,
     skipFailed: opts.skipFailed ?? false,
     dryRun: opts.dryRun ?? false,
     cli: cliOverrides(opts),

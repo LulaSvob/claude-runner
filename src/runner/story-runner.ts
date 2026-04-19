@@ -1,5 +1,7 @@
 import { resolve } from "node:path";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { execFile as execFileCb } from "node:child_process";
+import { promisify } from "node:util";
 import { runStory as runClaudeSession } from "../sdk/claude-session.js";
 import { testAuth } from "../sdk/auth-prober.js";
 import { RetryStateMachine } from "../errors/retry-state-machine.js";
@@ -12,6 +14,47 @@ import { Timer } from "../util/timer.js";
 import { deriveScope } from "../util/scope.js";
 import * as git from "../git/operations.js";
 import type { StoryOutcome } from "./types.js";
+
+const execFile = promisify(execFileCb);
+
+async function logFailureDiagnostics(
+  logger: Logger,
+  logsDir: string,
+  storyName: string,
+): Promise<void> {
+  logger.info("Diagnostics:");
+  logger.info(`  wall-clock: ${new Date().toISOString()}`);
+
+  try {
+    const { stdout } = await execFile("claude", ["--version"]);
+    logger.info(`  claude version: ${stdout.trim()}`);
+  } catch {
+    logger.info("  claude version: <failed>");
+  }
+
+  const debugPath = resolve(logsDir, `${storyName}.debug.log`);
+  if (existsSync(debugPath)) {
+    try {
+      const st = statSync(debugPath);
+      logger.info(`  debug log: ${debugPath} (${st.size} bytes)`);
+    } catch {}
+  }
+
+  const logPath = resolve(logsDir, `${storyName}.log`);
+  if (existsSync(logPath)) {
+    try {
+      const content = readFileSync(logPath, "utf-8");
+      const lines = content.trimEnd().split("\n");
+      const lineCount = lines.length;
+      const st = statSync(logPath);
+      logger.info(`  log file: ${lineCount} lines / ${st.size} bytes`);
+      logger.info("  last 5 lines:");
+      for (const line of lines.slice(-5)) {
+        logger.info(`    | ${line}`);
+      }
+    } catch {}
+  }
+}
 
 interface ResumableWaiter {
   wait(ms: number): Promise<void>;
@@ -136,13 +179,29 @@ export async function runStory(
 
         if (await git.hasChanges(config.projectPath)) {
           if (config.git.autoCommit) {
-            await git.commitAndPush(config.projectPath, config.branch, {
-              scope,
-              storyName,
-              commitTemplate: config.git.commitTemplate,
-              coAuthor: config.git.coAuthor,
-            });
-            logger.info(`Committed and pushed: ${storyName}`);
+            try {
+              await git.commitAndPush(config.projectPath, config.branch, {
+                scope,
+                storyName,
+                commitTemplate: config.git.commitTemplate,
+                coAuthor: config.git.coAuthor,
+              });
+              logger.info(`Committed and pushed: ${storyName}`);
+            } catch (err) {
+              logger.error(
+                `Commit/push failed: ${err instanceof Error ? err.message : err}`
+              );
+              const action = rsm.handleNormalFailure();
+              if (action.action === "abort") {
+                return {
+                  status: "failed",
+                  exitCode: action.exitCode,
+                  reason: `Commit/push failed: ${err instanceof Error ? err.message : "unknown"}`,
+                  durationMs: timer.elapsedMs(),
+                };
+              }
+              continue;
+            }
           }
         } else {
           logger.info(`No changes produced for: ${storyName}`);
@@ -165,6 +224,8 @@ export async function runStory(
           `TIMEOUT: ${storyName} exceeded ${config.storyTimeoutSeconds}s`
         );
       }
+
+      await logFailureDiagnostics(logger, logsDir, storyName);
 
       const errorSignal: ErrorSignal | null = sessionResult.errorSignal;
 

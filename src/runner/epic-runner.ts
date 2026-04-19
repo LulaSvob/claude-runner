@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { resolve, basename } from "node:path";
 import { runStory } from "./story-runner.js";
+import { testAuth } from "../sdk/auth-prober.js";
 import { shouldSkipStory } from "../git/skip-detection.js";
 import type { ResolvedStoryConfig } from "../config/schema.js";
 import type { EpicConfig } from "../config/schema.js";
@@ -30,6 +31,28 @@ export async function runEpic(
   let failed = 0;
   let skipped = 0;
   let exitCode: 0 | 1 | 2 = 0;
+
+  logger.info("Testing Claude connectivity...");
+  if (!(await testAuth(storyConfig.model))) {
+    logger.error(
+      "Claude not reachable. Make sure 'claude' is in PATH and authenticated."
+    );
+    await notifier.notifyStory({
+      title: "Runner failed",
+      message: "Claude not reachable — check CLI auth",
+      priority: "urgent",
+      tags: "x",
+    });
+    return {
+      epicName,
+      completed: 0,
+      failed: 1,
+      skipped: 0,
+      durationMs: timer.elapsedMs(),
+      exitCode: 1,
+    };
+  }
+  logger.info("Claude is ready");
 
   logger.info("═".repeat(50));
   logger.info(`Epic: ${epicName}`);

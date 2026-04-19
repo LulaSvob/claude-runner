@@ -94,6 +94,7 @@ export type EpicConfig = z.infer<typeof epicConfigSchema>;
 
 export const runAllConfigSchema = z.object({
   epicOrder: z.array(z.string()).min(1),
+  optional: z.array(z.string()).optional(),
   skipFailed: z.boolean().default(false),
 });
 
