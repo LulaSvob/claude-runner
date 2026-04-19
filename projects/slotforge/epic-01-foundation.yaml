@@ -1,0 +1,13 @@
+epic:
+  name: "epic-01-foundation"
+
+stories:
+  - backlog/roadmap/epic-01-foundation/us-1.1-turborepo-scaffold.md
+  - backlog/roadmap/epic-01-foundation/us-1.2-prisma-schema-baseline.md
+  - backlog/roadmap/epic-01-foundation/us-1.3-auth-provider-and-simplejwt.md
+  - backlog/roadmap/epic-01-foundation/us-1.4-keycloak-adapter.md
+  - backlog/roadmap/epic-01-foundation/us-1.5-pluggable-object-storage.md
+  - backlog/roadmap/epic-01-foundation/us-1.6-navigation-shell-and-routing.md
+  - backlog/roadmap/epic-01-foundation/us-1.7-project-manager-baseline.md
+  - backlog/roadmap/epic-01-foundation/us-1.8-docker-compose-and-render-deploy.md
+  - backlog/roadmap/epic-01-foundation/us-1.9-saas-registration-and-invitation-flow.md

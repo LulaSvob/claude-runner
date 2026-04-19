@@ -1,0 +1,11 @@
+epic:
+  name: "epic-05-math-engine-and-validation"
+
+stories:
+  - backlog/roadmap/epic-05-math-engine-and-validation/us-5.1-math-engine-package-and-comlink.md
+  - backlog/roadmap/epic-05-math-engine-and-validation/us-5.2-combinatorial-rtp-engine.md
+  - backlog/roadmap/epic-05-math-engine-and-validation/us-5.3-monte-carlo-engine.md
+  - backlog/roadmap/epic-05-math-engine-and-validation/us-5.4-math-dashboard-ui.md
+  - backlog/roadmap/epic-05-math-engine-and-validation/us-5.5-3-model-rtp-distribution-editor.md
+  - backlog/roadmap/epic-05-math-engine-and-validation/us-5.6-validation-harness-v01-to-v07.md
+  - backlog/roadmap/epic-05-math-engine-and-validation/us-5.7-pgvector-and-embedding-model.md

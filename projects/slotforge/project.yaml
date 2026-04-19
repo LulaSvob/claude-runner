@@ -1,0 +1,18 @@
+project:
+  name: "slotforge"
+  path: "/home/lubo/projects/slotforge"
+  branch: "develop"
+
+promptTemplate: "/flow @{storyPath}"
+
+git:
+  commitTemplate: "feat({scope}): implement {storyName}"
+  coAuthor: "Claude Opus 4.6 (1M context) <noreply@anthropic.com>"
+  protectedBranches: ["main", "master"]
+  autoCommit: true
+  autoPush: true
+
+notify:
+  ntfy:
+    storyTopic: "lubos-slotforge-epic-runner"
+    runAllTopic: "lubos-slotforge-run-all"

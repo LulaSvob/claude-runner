@@ -1,0 +1,7 @@
+epic:
+  name: "epic-12-desktop-wrapper"
+
+stories:
+  - backlog/roadmap/epic-12-desktop-wrapper/us-12.1-electron-wrap-and-online-mode.md
+  - backlog/roadmap/epic-12-desktop-wrapper/us-12.2-offline-mode.md
+  - backlog/roadmap/epic-12-desktop-wrapper/us-12.3-code-signing-and-auto-update.md

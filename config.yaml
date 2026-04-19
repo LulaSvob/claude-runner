@@ -1,0 +1,19 @@
+defaults:
+  model: "claude-opus-4-6[1m]"
+  maxRetries: 2
+  storyTimeoutSeconds: 2700
+  maxBudgetUsd: 5.00
+  quotaWaitSeconds: 3600
+  quotaMaxWaits: 12
+  authPollIntervalSeconds: 180
+
+notify:
+  provider: "ntfy"
+  ntfy:
+    baseUrl: "https://ntfy.sh"
+
+logging:
+  level: "info"
+  sdkDebug: true
+
+resumeSentinel: "/tmp/claude-runner-resume"

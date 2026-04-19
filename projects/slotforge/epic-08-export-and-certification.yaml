@@ -1,0 +1,9 @@
+epic:
+  name: "epic-08-export-and-certification"
+
+stories:
+  - backlog/roadmap/epic-08-export-and-certification/us-8.1-bullmq-export-worker.md
+  - backlog/roadmap/epic-08-export-and-certification/us-8.2-exceljs-12-sheet-math-model.md
+  - backlog/roadmap/epic-08-export-and-certification/us-8.3-pdfkit-gmr-generator.md
+  - backlog/roadmap/epic-08-export-and-certification/us-8.4-uncapped-streaming-csv-simulation.md
+  - backlog/roadmap/epic-08-export-and-certification/us-8.5-progress-streaming-and-retention.md

@@ -1,0 +1,17 @@
+epicOrder:
+  - epic-01-foundation
+  - epic-02-symbols-and-game-config
+  - epic-03-custom-mechanic-plugin-api
+  - epic-04-reel-editor-and-collaboration
+  - epic-05-math-engine-and-validation
+  - epic-06-simulator
+  - epic-07-ai-image-and-mechanic-studio-ui
+  - epic-08-export-and-certification
+  - epic-09-analytics-portfolio-admin
+  - epic-10-platform-owner-console
+  - epic-11-polish-security-packaging
+
+optional:
+  - epic-12-desktop-wrapper
+
+skipFailed: false

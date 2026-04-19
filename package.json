@@ -1,0 +1,29 @@
+{
+  "name": "claude-runner",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "claude-runner": "./dist/bin/claude-runner.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx bin/claude-runner.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.114",
+    "commander": "^13.0.0",
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.0.0",
+    "yaml": "^2.8.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0"
+  }
+}

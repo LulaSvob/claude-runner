@@ -1,0 +1,13 @@
+epic:
+  name: "epic-09-analytics-portfolio-admin"
+
+stories:
+  - backlog/roadmap/epic-09-analytics-portfolio-admin/us-9.1-analytics-core-views.md
+  - backlog/roadmap/epic-09-analytics-portfolio-admin/us-9.2-analytics-comparative-and-regulatory.md
+  - backlog/roadmap/epic-09-analytics-portfolio-admin/us-9.3-portfolio-dashboard-overview-and-kanban.md
+  - backlog/roadmap/epic-09-analytics-portfolio-admin/us-9.4-portfolio-pdf-export.md
+  - backlog/roadmap/epic-09-analytics-portfolio-admin/us-9.5-admin-users-jobtitle-and-sso.md
+  - backlog/roadmap/epic-09-analytics-portfolio-admin/us-9.6-admin-provider-config.md
+  - backlog/roadmap/epic-09-analytics-portfolio-admin/us-9.7-admin-audit-storage-regulatory.md
+  - backlog/roadmap/epic-09-analytics-portfolio-admin/us-9.8-admin-saas-subscription-and-invitations.md
+  - backlog/roadmap/epic-09-analytics-portfolio-admin/us-9.9-admin-token-usage-and-costs.md

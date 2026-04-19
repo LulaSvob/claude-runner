@@ -1,0 +1,10 @@
+epic:
+  name: "epic-11-polish-security-packaging"
+
+stories:
+  - backlog/roadmap/epic-11-polish-security-packaging/us-11.1-guided-new-project-wizard.md
+  - backlog/roadmap/epic-11-polish-security-packaging/us-11.2-keyboard-shortcuts.md
+  - backlog/roadmap/epic-11-polish-security-packaging/us-11.3-helm-chart-finalisation.md
+  - backlog/roadmap/epic-11-polish-security-packaging/us-11.4-render-hardening.md
+  - backlog/roadmap/epic-11-polish-security-packaging/us-11.5-playwright-e2e.md
+  - backlog/roadmap/epic-11-polish-security-packaging/us-11.6-performance-and-pentest-scope.md

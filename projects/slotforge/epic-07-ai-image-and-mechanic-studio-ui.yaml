@@ -1,0 +1,12 @@
+epic:
+  name: "epic-07-ai-image-and-mechanic-studio-ui"
+
+stories:
+  - backlog/roadmap/epic-07-ai-image-and-mechanic-studio-ui/us-7.1-image-provider-interface-and-leonardo.md
+  - backlog/roadmap/epic-07-ai-image-and-mechanic-studio-ui/us-7.2-style-presets-variants-upscale.md
+  - backlog/roadmap/epic-07-ai-image-and-mechanic-studio-ui/us-7.3-sdxl-openai-replicate-upload.md
+  - backlog/roadmap/epic-07-ai-image-and-mechanic-studio-ui/us-7.4-llm-provider-interface.md
+  - backlog/roadmap/epic-07-ai-image-and-mechanic-studio-ui/us-7.5-llm-generation-studio-sse-endpoint.md
+  - backlog/roadmap/epic-07-ai-image-and-mechanic-studio-ui/us-7.6-monaco-editor-and-live-zod-form.md
+  - backlog/roadmap/epic-07-ai-image-and-mechanic-studio-ui/us-7.7-mechanic-library-and-few-shot.md
+  - backlog/roadmap/epic-07-ai-image-and-mechanic-studio-ui/us-7.8-prompt-ci-test-suite.md

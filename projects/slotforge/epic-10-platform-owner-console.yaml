@@ -1,0 +1,9 @@
+epic:
+  name: "epic-10-platform-owner-console"
+
+stories:
+  - backlog/roadmap/epic-10-platform-owner-console/us-10.1-platform-admin-shell-and-orgs.md
+  - backlog/roadmap/epic-10-platform-owner-console/us-10.2-platform-revenue-and-billing.md
+  - backlog/roadmap/epic-10-platform-owner-console/us-10.3-platform-ai-spend.md
+  - backlog/roadmap/epic-10-platform-owner-console/us-10.4-license-token-management.md
+  - backlog/roadmap/epic-10-platform-owner-console/us-10.5-platform-audit-log.md

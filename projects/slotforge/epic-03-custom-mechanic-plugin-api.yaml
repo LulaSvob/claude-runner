@@ -1,0 +1,11 @@
+epic:
+  name: "epic-03-custom-mechanic-plugin-api"
+
+stories:
+  - backlog/roadmap/epic-03-custom-mechanic-plugin-api/us-3.1-slotmechanic-interface-and-registry.md
+  - backlog/roadmap/epic-03-custom-mechanic-plugin-api/us-3.2-builtin-paylines-plugins.md
+  - backlog/roadmap/epic-03-custom-mechanic-plugin-api/us-3.3-builtin-cluster-pays.md
+  - backlog/roadmap/epic-03-custom-mechanic-plugin-api/us-3.4-builtin-variable-ways.md
+  - backlog/roadmap/epic-03-custom-mechanic-plugin-api/us-3.5-builtin-hold-respin-and-cascade.md
+  - backlog/roadmap/epic-03-custom-mechanic-plugin-api/us-3.6-mt19937-rng-module.md
+  - backlog/roadmap/epic-03-custom-mechanic-plugin-api/us-3.7-sandbox-and-custom-mechanic-schema.md

@@ -1,0 +1,10 @@
+epic:
+  name: "epic-06-simulator"
+
+stories:
+  - backlog/roadmap/epic-06-simulator/us-6.1-pixi-app-hook.md
+  - backlog/roadmap/epic-06-simulator/us-6.2-spin-renderer-and-win-overlays.md
+  - backlog/roadmap/epic-06-simulator/us-6.3-autoplay-and-speed-modes.md
+  - backlog/roadmap/epic-06-simulator/us-6.4-seeded-replay.md
+  - backlog/roadmap/epic-06-simulator/us-6.5-stats-overlay-and-win-log.md
+  - backlog/roadmap/epic-06-simulator/us-6.6-mechanic-metadata-rendering.md

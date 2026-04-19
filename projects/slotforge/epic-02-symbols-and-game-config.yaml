@@ -1,0 +1,11 @@
+epic:
+  name: "epic-02-symbols-and-game-config"
+
+stories:
+  - backlog/roadmap/epic-02-symbols-and-game-config/us-2.1-symbol-studio-crud.md
+  - backlog/roadmap/epic-02-symbols-and-game-config/us-2.2-game-config-grid-and-variable-heights.md
+  - backlog/roadmap/epic-02-symbols-and-game-config/us-2.3-game-config-bet-configuration.md
+  - backlog/roadmap/epic-02-symbols-and-game-config/us-2.4-game-config-mechanic-picker.md
+  - backlog/roadmap/epic-02-symbols-and-game-config/us-2.5-game-config-regulatory-presets.md
+  - backlog/roadmap/epic-02-symbols-and-game-config/us-2.6-game-config-history-tab.md
+  - backlog/roadmap/epic-02-symbols-and-game-config/us-2.7-shared-zod-schemas.md

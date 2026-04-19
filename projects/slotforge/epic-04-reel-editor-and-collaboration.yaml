@@ -1,0 +1,10 @@
+epic:
+  name: "epic-04-reel-editor-and-collaboration"
+
+stories:
+  - backlog/roadmap/epic-04-reel-editor-and-collaboration/us-4.1-dnd-kit-strip-editor.md
+  - backlog/roadmap/epic-04-reel-editor-and-collaboration/us-4.2-count-summary-and-heatmap.md
+  - backlog/roadmap/epic-04-reel-editor-and-collaboration/us-4.3-reel-set-variants-and-multi-strip.md
+  - backlog/roadmap/epic-04-reel-editor-and-collaboration/us-4.4-csv-import-export.md
+  - backlog/roadmap/epic-04-reel-editor-and-collaboration/us-4.5-ot-collaboration-and-presence.md
+  - backlog/roadmap/epic-04-reel-editor-and-collaboration/us-4.6-ai-optimize-and-live-monte-carlo.md
