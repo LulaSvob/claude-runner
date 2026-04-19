@@ -46,6 +46,7 @@ export async function runStory(
         model: config.model,
         maxBudgetUsd: config.maxBudgetUsd,
         permissionMode: "bypassPermissions",
+        allowDangerouslySkipPermissions: true,
         abortController,
         ...(debugFile ? { debugFile } : {}),
       },

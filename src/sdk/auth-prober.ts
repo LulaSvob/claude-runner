@@ -9,6 +9,7 @@ export async function testAuth(model: string): Promise<boolean> {
         maxTurns: 1,
         maxBudgetUsd: 0.01,
         permissionMode: "bypassPermissions",
+        allowDangerouslySkipPermissions: true,
       },
     });
 
