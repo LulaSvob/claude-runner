@@ -1,7 +1,8 @@
 import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { resolve, basename } from "node:path";
+import { hasCommitForStory } from "./operations.js";
 
-export type SkipReason = "story-done" | "story-fixed" | "before-start";
+export type SkipReason = "story-done" | "story-fixed" | "git-history" | "before-start";
 
 const DONE_STATUSES = ["✅ DONE", "✅ FIXED"];
 
@@ -38,6 +39,13 @@ export async function shouldSkipStory(
   }
   if (status?.includes("✅ FIXED")) {
     return { skip: true, reason: "story-fixed" };
+  }
+
+  // Fallback: check git history for stories that were implemented
+  // but never formally accepted (status not updated)
+  const storyName = basename(storyRelativePath, ".md");
+  if (await hasCommitForStory(opts.projectPath, storyName)) {
+    return { skip: true, reason: "git-history" };
   }
 
   return { skip: false };
