@@ -1,0 +1,6 @@
+epic:
+  name: "bugs-auth-flow"
+
+stories:
+  - backlog/bugs/open/b-002-no-login-page.md
+  - backlog/bugs/open/b-003-verify-email-dark-mode-and-redirect.md
