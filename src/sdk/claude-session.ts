@@ -96,6 +96,23 @@ export async function runStory(
       errorSignal,
       timedOut,
     };
+  } catch (err: unknown) {
+    const timedOut = abortController.signal.aborted;
+    const isAbort =
+      timedOut ||
+      (err instanceof Error && err.message.includes("aborted"));
+
+    if (isAbort) {
+      return {
+        success: false,
+        costUsd,
+        result,
+        errorSignal,
+        timedOut: true,
+      };
+    }
+
+    throw err;
   } finally {
     clearTimeout(timeoutHandle);
   }

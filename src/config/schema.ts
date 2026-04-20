@@ -3,7 +3,7 @@ import { z } from "zod";
 export const defaultsSchema = z.object({
   model: z.string().default("claude-opus-4-6[1m]"),
   maxRetries: z.number().int().min(1).default(2),
-  storyTimeoutSeconds: z.number().int().min(60).default(2700),
+  storyTimeoutSeconds: z.number().int().min(60).default(10800),
   maxBudgetUsd: z.number().positive().optional(),
   quotaWaitSeconds: z.number().int().min(60).default(3600),
   quotaMaxWaits: z.number().int().min(1).default(12),
@@ -32,7 +32,7 @@ export const globalConfigSchema = z.object({
   defaults: defaultsSchema.default(() => ({
     model: "claude-opus-4-6[1m]",
     maxRetries: 2,
-    storyTimeoutSeconds: 2700,
+    storyTimeoutSeconds: 10800,
     quotaWaitSeconds: 3600,
     quotaMaxWaits: 12,
     authPollIntervalSeconds: 180,
