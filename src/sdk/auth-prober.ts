@@ -12,7 +12,6 @@ export async function testAuth(
       options: {
         model,
         maxTurns: 1,
-        maxBudgetUsd: 0.01,
         permissionMode: "bypassPermissions",
         allowDangerouslySkipPermissions: true,
       },
