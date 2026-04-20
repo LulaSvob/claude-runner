@@ -32,7 +32,7 @@ export async function runEpic(
   let exitCode: 0 | 1 | 2 = 0;
 
   logger.info("Testing Claude connectivity...");
-  if (!(await testAuth(storyConfig.model))) {
+  if (!(await testAuth(storyConfig.model, (msg) => logger.info(msg)))) {
     logger.error(
       "Claude not reachable. Make sure 'claude' is in PATH and authenticated."
     );
