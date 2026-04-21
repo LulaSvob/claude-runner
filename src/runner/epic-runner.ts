@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { resolve, basename } from "node:path";
 import { runStory } from "./story-runner.js";
-import { testAuth } from "../sdk/auth-prober.js";
+import { testAuth, type AuthProbeResult } from "../sdk/auth-prober.js";
 import { shouldSkipStory } from "../git/skip-detection.js";
 import type { ResolvedStoryConfig } from "../config/schema.js";
 import type { EpicConfig } from "../config/schema.js";
@@ -32,26 +32,38 @@ export async function runEpic(
   let exitCode: 0 | 1 | 2 = 0;
 
   logger.info("Testing Claude connectivity...");
-  if (!(await testAuth(storyConfig.model, (msg) => logger.info(msg)))) {
-    logger.error(
-      "Claude not reachable. Make sure 'claude' is in PATH and authenticated."
-    );
-    await notifier.notifyStory({
-      title: "Runner failed",
-      message: "Claude not reachable — check CLI auth",
-      priority: "urgent",
-      tags: "x",
-    });
-    return {
-      epicName,
-      completed: 0,
-      failed: 1,
-      skipped: 0,
-      durationMs: timer.elapsedMs(),
-      exitCode: 1,
-    };
+  const authResult: AuthProbeResult = await testAuth(
+    storyConfig.model,
+    (msg) => logger.info(msg),
+  );
+  if (!authResult.ok) {
+    if (authResult.reason === "quota") {
+      logger.warn(
+        `Auth probe: quota exhausted — stories will wait for quota inside their retry loops`,
+      );
+    } else {
+      logger.error(
+        `Claude not reachable (${authResult.reason}: ${authResult.message}). ` +
+          "Make sure 'claude' is in PATH and authenticated.",
+      );
+      await notifier.notifyStory({
+        title: "Runner failed",
+        message: `Claude not reachable — ${authResult.reason}: ${authResult.message}`,
+        priority: "urgent",
+        tags: "x",
+      });
+      return {
+        epicName,
+        completed: 0,
+        failed: 1,
+        skipped: 0,
+        durationMs: timer.elapsedMs(),
+        exitCode: 1,
+      };
+    }
+  } else {
+    logger.info("Claude is ready");
   }
-  logger.info("Claude is ready");
 
   logger.info("═".repeat(50));
   logger.info(`Epic: ${epicName}`);

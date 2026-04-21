@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import { mkdirSync, createWriteStream } from "node:fs";
+import { mkdirSync, createWriteStream, writeFileSync } from "node:fs";
 import { runEpic } from "./epic-runner.js";
 import {
   loadGlobalConfig,
@@ -35,7 +35,8 @@ export async function runAll(opts: {
   mkdirSync(runAllLogDir, { recursive: true });
   const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
   const runLogPath = resolve(runAllLogDir, `run-${ts}.log`);
-  const runLogStream = createWriteStream(runLogPath, { flags: "w" });
+  writeFileSync(runLogPath, `[${new Date().toISOString()}] Run-all starting...\n`);
+  const runLogStream = createWriteStream(runLogPath, { flags: "a" });
   const origLogInfo = logger.info.bind(logger);
   const origLogError = logger.error.bind(logger);
   const logAndFile = (level: "info" | "error", ...args: Parameters<typeof logger.info>) => {
@@ -45,7 +46,9 @@ export async function runAll(opts: {
   };
   logger.info = ((...args: Parameters<typeof logger.info>) => logAndFile("info", ...args)) as typeof logger.info;
   logger.error = ((...args: Parameters<typeof logger.error>) => logAndFile("error", ...args)) as typeof logger.error;
+  logger.info(`Run-all started at ${new Date().toISOString()}`);
   logger.info(`Run-all log: ${runLogPath}`);
+  logger.info(`Project: ${opts.projectName}, path: ${project.project.path}`);
 
   const notifier = createNotifier({
     provider: global.notify.provider,
