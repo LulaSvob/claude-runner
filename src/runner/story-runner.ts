@@ -268,7 +268,10 @@ export async function runStory(
             tags: "key",
           });
 
-          while (!(await testAuth(config.model))) {
+          while (true) {
+            const probe = await testAuth(config.model);
+            if (probe.ok) break;
+            logger.info(`Auth probe: ${probe.reason} — ${probe.message}`);
             await waiter.wait(config.authPollIntervalSeconds * 1000);
           }
 

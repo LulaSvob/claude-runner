@@ -24,15 +24,21 @@ export async function runStory(
   const prompt = config.promptTemplate.replace("{storyPath}", storyPath);
   const abortController = new AbortController();
 
+  let q: Query | null = null;
+
   const timeoutHandle = setTimeout(() => {
     abortController.abort();
+    // AbortController alone doesn't work when the SDK is sleeping in its
+    // internal retry backoff. interrupt() sends SIGINT to the child process.
+    if (q) {
+      q.interrupt().catch(() => {});
+    }
   }, config.storyTimeoutSeconds * 1000);
 
   const monitor = new StreamMonitor(opts.onEvent);
   let errorSignal: ErrorSignal | null = null;
   let costUsd = 0;
   let result = "";
-  let q: Query | null = null;
 
   try {
     const debugFile = config.logging.sdkDebug
