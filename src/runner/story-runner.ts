@@ -163,6 +163,12 @@ export async function runStory(
             logger.warn({ signal: event.signal }, "Stream error detected");
           }
         },
+        onStall: (info) => {
+          logger.warn(
+            `Stream stall: no messages for ${Math.round(info.stallMs / 1000)}s (stall #${info.totalStalls}). ` +
+            `Will abort at ${config.streamStallTimeoutSeconds}s.`
+          );
+        },
         logsDir,
         storyName,
       });
@@ -212,9 +218,34 @@ export async function runStory(
         };
       }
 
+      if (sessionResult.stalledOut) {
+        const { streamStats } = sessionResult;
+        logger.error(
+          `STREAM STALL ABORT: ${storyName} — no SDK messages for ${config.streamStallTimeoutSeconds}s. ` +
+          `Messages received: ${streamStats.messagesReceived}, ` +
+          `total stalls: ${streamStats.totalStalls}, ` +
+          `longest stall: ${Math.round(streamStats.longestStallMs / 1000)}s`
+        );
+        await notifier.notifyStory({
+          title: "Stream stall — retrying",
+          message: `${storyName} — no messages for ${config.streamStallTimeoutSeconds}s ` +
+            `(${streamStats.messagesReceived} msgs received before stall)`,
+          priority: "high",
+          tags: "warning",
+        });
+      }
+
       if (sessionResult.timedOut) {
         logger.error(
           `TIMEOUT: ${storyName} exceeded ${config.storyTimeoutSeconds}s`
+        );
+      }
+
+      if (sessionResult.streamStats.messagesReceived > 0) {
+        logger.info(
+          `Stream stats: ${sessionResult.streamStats.messagesReceived} messages, ` +
+          `${sessionResult.streamStats.totalStalls} stalls, ` +
+          `longest stall: ${Math.round(sessionResult.streamStats.longestStallMs / 1000)}s`
         );
       }
 

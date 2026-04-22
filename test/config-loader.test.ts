@@ -15,7 +15,7 @@ describe("config loader", () => {
     const config = loadGlobalConfig(RUNNER_ROOT);
     expect(config.defaults.model).toBe("claude-opus-4-6[1m]");
     expect(config.defaults.maxRetries).toBe(2);
-    expect(config.defaults.storyTimeoutSeconds).toBe(2700);
+    expect(config.defaults.storyTimeoutSeconds).toBe(10800);
     expect(config.notify.provider).toBe("ntfy");
     expect(config.logging.level).toBe("info");
     expect(config.resumeSentinel).toBe("/tmp/claude-runner-resume");

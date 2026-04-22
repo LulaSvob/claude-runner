@@ -10,6 +10,26 @@ export interface SessionResult {
   result: string;
   errorSignal: ErrorSignal | null;
   timedOut: boolean;
+  stalledOut: boolean;
+  streamStats: StreamStats;
+}
+
+export interface StreamStats {
+  messagesReceived: number;
+  firstMessageAt: number | null;
+  lastMessageAt: number | null;
+  totalStalls: number;
+  longestStallMs: number;
+}
+
+function abortSession(
+  abortController: AbortController,
+  q: Query | null,
+): void {
+  abortController.abort();
+  if (q) {
+    q.interrupt().catch(() => {});
+  }
 }
 
 export async function runStory(
@@ -17,6 +37,7 @@ export async function runStory(
   config: ResolvedStoryConfig,
   opts: {
     onEvent: (event: StreamEvent) => void;
+    onStall?: (info: { stallMs: number; totalStalls: number }) => void;
     logsDir: string;
     storyName: string;
   }
@@ -25,20 +46,63 @@ export async function runStory(
   const abortController = new AbortController();
 
   let q: Query | null = null;
+  let stalledOut = false;
+
+  const stats: StreamStats = {
+    messagesReceived: 0,
+    firstMessageAt: null,
+    lastMessageAt: null,
+    totalStalls: 0,
+    longestStallMs: 0,
+  };
+
+  const stallThresholdMs = config.streamStallTimeoutSeconds * 1000;
+  const stallWarningMs = Math.min(stallThresholdMs * 0.5, 120_000);
+  let stallTimer: NodeJS.Timeout | null = null;
+  let stallWarningTimer: NodeJS.Timeout | null = null;
+  let lastMsgTime = Date.now();
+
+  function resetStallTimers(): void {
+    const now = Date.now();
+    const gap = now - lastMsgTime;
+    if (stats.messagesReceived > 0 && gap > stallWarningMs) {
+      stats.totalStalls++;
+      if (gap > stats.longestStallMs) stats.longestStallMs = gap;
+    }
+    lastMsgTime = now;
+    stats.lastMessageAt = now;
+    if (stats.firstMessageAt === null) stats.firstMessageAt = now;
+
+    if (stallTimer) clearTimeout(stallTimer);
+    if (stallWarningTimer) clearTimeout(stallWarningTimer);
+
+    stallWarningTimer = setTimeout(() => {
+      const elapsed = Date.now() - lastMsgTime;
+      opts.onStall?.({
+        stallMs: elapsed,
+        totalStalls: stats.totalStalls + 1,
+      });
+    }, stallWarningMs);
+
+    stallTimer = setTimeout(() => {
+      stalledOut = true;
+      abortSession(abortController, q);
+    }, stallThresholdMs);
+  }
 
   const timeoutHandle = setTimeout(() => {
-    abortController.abort();
-    // AbortController alone doesn't work when the SDK is sleeping in its
-    // internal retry backoff. interrupt() sends SIGINT to the child process.
-    if (q) {
-      q.interrupt().catch(() => {});
-    }
+    abortSession(abortController, q);
   }, config.storyTimeoutSeconds * 1000);
 
   const monitor = new StreamMonitor(opts.onEvent);
   let errorSignal: ErrorSignal | null = null;
   let costUsd = 0;
   let result = "";
+
+  function clearStallTimers(): void {
+    if (stallTimer) clearTimeout(stallTimer);
+    if (stallWarningTimer) clearTimeout(stallWarningTimer);
+  }
 
   try {
     const debugFile = config.logging.sdkDebug
@@ -58,7 +122,12 @@ export async function runStory(
       },
     });
 
+    resetStallTimers();
+
     for await (const msg of q) {
+      stats.messagesReceived++;
+      resetStallTimers();
+
       const signal = monitor.process(msg);
 
       if (signal && signal.type === "quota") {
@@ -93,19 +162,21 @@ export async function runStory(
       }
     }
 
-    const timedOut = abortController.signal.aborted;
+    const timedOut = abortController.signal.aborted && !stalledOut;
 
     return {
-      success: errorSignal === null && !timedOut && result !== "",
+      success: errorSignal === null && !timedOut && !stalledOut && result !== "",
       costUsd,
       result,
       errorSignal,
       timedOut,
+      stalledOut,
+      streamStats: stats,
     };
   } catch (err: unknown) {
-    const timedOut = abortController.signal.aborted;
+    const aborted = abortController.signal.aborted;
     const isAbort =
-      timedOut ||
+      aborted ||
       (err instanceof Error && err.message.includes("aborted"));
 
     if (isAbort) {
@@ -114,12 +185,15 @@ export async function runStory(
         costUsd,
         result,
         errorSignal,
-        timedOut: true,
+        timedOut: aborted && !stalledOut,
+        stalledOut,
+        streamStats: stats,
       };
     }
 
     throw err;
   } finally {
     clearTimeout(timeoutHandle);
+    clearStallTimers();
   }
 }

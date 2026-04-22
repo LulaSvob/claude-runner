@@ -98,6 +98,10 @@ export function resolveStoryConfig(
       epic.storyTimeoutSeconds ??
       projectDefaults.storyTimeoutSeconds ??
       global.defaults.storyTimeoutSeconds,
+    streamStallTimeoutSeconds:
+      epic.streamStallTimeoutSeconds ??
+      projectDefaults.streamStallTimeoutSeconds ??
+      global.defaults.streamStallTimeoutSeconds,
     maxBudgetUsd:
       projectDefaults.maxBudgetUsd ?? global.defaults.maxBudgetUsd,
     quotaWaitSeconds:
