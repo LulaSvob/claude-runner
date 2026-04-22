@@ -1,4 +1,4 @@
-import { query, type Query } from "@anthropic-ai/claude-agent-sdk";
+import { query, type Query, type SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { StreamMonitor, type StreamEvent } from "./stream-monitor.js";
 import type { ErrorSignal } from "../errors/classifier.js";
 import type { ResolvedStoryConfig } from "../config/schema.js";
@@ -61,6 +61,7 @@ export async function runStory(
   let stallTimer: NodeJS.Timeout | null = null;
   let stallWarningTimer: NodeJS.Timeout | null = null;
   let lastMsgTime = Date.now();
+  let awaitingToolResult = false;
 
   function resetStallTimers(): void {
     const now = Date.now();
@@ -76,6 +77,10 @@ export async function runStory(
     if (stallTimer) clearTimeout(stallTimer);
     if (stallWarningTimer) clearTimeout(stallWarningTimer);
 
+    // Don't arm stall timers while waiting for a tool to finish —
+    // silence is expected during long-running bash commands.
+    if (awaitingToolResult) return;
+
     stallWarningTimer = setTimeout(() => {
       const elapsed = Date.now() - lastMsgTime;
       opts.onStall?.({
@@ -87,11 +92,36 @@ export async function runStory(
     stallTimer = setTimeout(() => {
       stalledOut = true;
       abortSession(abortController, q);
+      killTimer = setTimeout(() => {
+        if (q) q.close();
+      }, KILL_GRACE_MS);
     }, stallThresholdMs);
   }
 
+  function detectToolExecution(msg: SDKMessage): void {
+    if (
+      msg.type === "assistant" &&
+      msg.message?.content?.some(
+        (b: { type: string }) => b.type === "tool_use",
+      )
+    ) {
+      awaitingToolResult = true;
+    } else if (awaitingToolResult && msg.type !== "assistant") {
+      // Any non-assistant message after tool_use means tool has returned
+      awaitingToolResult = false;
+    }
+  }
+
+  let killTimer: NodeJS.Timeout | null = null;
+  const KILL_GRACE_MS = 30_000;
+
   const timeoutHandle = setTimeout(() => {
     abortSession(abortController, q);
+    // If interrupt doesn't kill the process within the grace period,
+    // escalate to close() which does SIGTERM → SIGKILL.
+    killTimer = setTimeout(() => {
+      if (q) q.close();
+    }, KILL_GRACE_MS);
   }, config.storyTimeoutSeconds * 1000);
 
   const monitor = new StreamMonitor(opts.onEvent);
@@ -99,9 +129,10 @@ export async function runStory(
   let costUsd = 0;
   let result = "";
 
-  function clearStallTimers(): void {
+  function clearAllTimers(): void {
     if (stallTimer) clearTimeout(stallTimer);
     if (stallWarningTimer) clearTimeout(stallWarningTimer);
+    if (killTimer) clearTimeout(killTimer);
   }
 
   try {
@@ -126,6 +157,7 @@ export async function runStory(
 
     for await (const msg of q) {
       stats.messagesReceived++;
+      detectToolExecution(msg);
       resetStallTimers();
 
       const signal = monitor.process(msg);
@@ -203,6 +235,6 @@ export async function runStory(
     };
   } finally {
     clearTimeout(timeoutHandle);
-    clearStallTimers();
+    clearAllTimers();
   }
 }

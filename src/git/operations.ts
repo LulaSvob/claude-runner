@@ -41,6 +41,23 @@ export async function validateBranch(
   return { ok: true, current };
 }
 
+export async function stashWorkingTree(
+  cwd: string,
+  label: string,
+): Promise<{ stashed: boolean; dirtyCount: number }> {
+  const { stdout } = await git(["status", "--porcelain"], cwd);
+  const dirtyCount = stdout.trim() ? stdout.trim().split("\n").length : 0;
+
+  if (dirtyCount === 0) return { stashed: false, dirtyCount: 0 };
+
+  await git(["add", "-A"], cwd);
+  await git(
+    ["stash", "push", "-m", `claude-runner WIP: ${label}`],
+    cwd,
+  );
+  return { stashed: true, dirtyCount };
+}
+
 export async function cleanWorkingTree(cwd: string): Promise<number> {
   const { stdout } = await git(["status", "--porcelain"], cwd);
   const dirtyCount = stdout.trim() ? stdout.trim().split("\n").length : 0;

@@ -141,9 +141,21 @@ export async function runStory(
         `Starting: ${storyName} (attempt ${state.attempt}/${config.maxRetries})`
       );
 
-      const dirty = await git.cleanWorkingTree(config.projectPath);
-      if (dirty > 0) {
-        logger.info(`Cleaned ${dirty} dirty files`);
+      if (state.attempt > 1) {
+        const { stashed, dirtyCount } = await git.stashWorkingTree(
+          config.projectPath,
+          `${storyName} attempt-${state.attempt - 1}`,
+        );
+        if (stashed) {
+          logger.info(
+            `Stashed ${dirtyCount} dirty files from previous attempt (git stash pop to recover)`
+          );
+        }
+      } else {
+        const dirty = await git.cleanWorkingTree(config.projectPath);
+        if (dirty > 0) {
+          logger.info(`Cleaned ${dirty} dirty files`);
+        }
       }
 
       await git.forceBranch(config.projectPath, config.branch);
@@ -326,7 +338,15 @@ export async function runStory(
           priority: "high",
           tags: "x",
         });
-        await git.cleanWorkingTree(config.projectPath);
+        const { stashed, dirtyCount } = await git.stashWorkingTree(
+          config.projectPath,
+          `${storyName} final-attempt`,
+        );
+        if (stashed) {
+          logger.info(
+            `Stashed ${dirtyCount} dirty files from final attempt (git stash pop to recover)`
+          );
+        }
         return {
           status: "failed",
           exitCode: action.exitCode,
