@@ -206,6 +206,13 @@ export async function runStory(
         onOrphanCleanup: (killed) => {
           logger.info(`Cleaned up ${killed} orphaned child processes`);
         },
+        onSuspectSleep: (info) => {
+          const suspendSecs = Math.round((info.actualMs - info.expectedMs) / 1000);
+          logger.warn(
+            `SUSPECTED SYSTEM SLEEP: heartbeat expected after ${info.expectedMs / 1000}s ` +
+            `but ${Math.round(info.actualMs / 1000)}s elapsed — system was likely suspended for ~${suspendSecs}s`
+          );
+        },
         logsDir,
         storyName,
       });

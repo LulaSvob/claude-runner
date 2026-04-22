@@ -40,6 +40,7 @@ export async function runStory(
     onEvent: (event: StreamEvent) => void;
     onStall?: (info: { stallMs: number; totalStalls: number }) => void;
     onOrphanCleanup?: (killed: number) => void;
+    onSuspectSleep?: (info: { expectedMs: number; actualMs: number }) => void;
     retryContext?: string | null;
     logsDir: string;
     storyName: string;
@@ -116,6 +117,27 @@ export async function runStory(
     }
   }
 
+  // WSL/system sleep detection: a 30s heartbeat that checks for clock jumps.
+  // If the timer fires and the actual elapsed time is >2x expected, the system
+  // was likely suspended (WSL sleep, laptop lid close, etc.).
+  const HEARTBEAT_MS = 30_000;
+  let heartbeatTimer: NodeJS.Timeout | null = null;
+  let lastHeartbeat = Date.now();
+
+  function startHeartbeat(): void {
+    heartbeatTimer = setInterval(() => {
+      const now = Date.now();
+      const elapsed = now - lastHeartbeat;
+      if (elapsed > HEARTBEAT_MS * 3) {
+        opts.onSuspectSleep?.({
+          expectedMs: HEARTBEAT_MS,
+          actualMs: elapsed,
+        });
+      }
+      lastHeartbeat = now;
+    }, HEARTBEAT_MS);
+  }
+
   let killTimer: NodeJS.Timeout | null = null;
   const KILL_GRACE_MS = 30_000;
 
@@ -137,6 +159,7 @@ export async function runStory(
     if (stallTimer) clearTimeout(stallTimer);
     if (stallWarningTimer) clearTimeout(stallWarningTimer);
     if (killTimer) clearTimeout(killTimer);
+    if (heartbeatTimer) clearInterval(heartbeatTimer);
   }
 
   const debugFilePath = config.logging.sdkDebug
@@ -158,6 +181,7 @@ export async function runStory(
     });
 
     resetStallTimers();
+    startHeartbeat();
 
     for await (const msg of q) {
       stats.messagesReceived++;
