@@ -66,6 +66,42 @@ export async function killProcessTree(pid: number): Promise<number> {
  * We search for processes whose command line contains the debug file path,
  * which is unique per story run.
  */
+/**
+ * Find and kill orphaned vitest/turbo processes from previous runner attempts.
+ * These can survive when the SDK child is killed without propagating to grandchildren.
+ */
+export async function killStaleTestProcesses(): Promise<number> {
+  let killed = 0;
+  for (const pattern of ["vitest", "turbo.*run.*test"]) {
+    try {
+      const { stdout } = await execFile("pgrep", ["-f", pattern]);
+      const pids = stdout
+        .trim()
+        .split("\n")
+        .filter(Boolean)
+        .map((s) => parseInt(s.trim(), 10))
+        .filter((n) => !isNaN(n) && n !== process.pid);
+
+      for (const pid of pids) {
+        try {
+          process.kill(pid, "SIGKILL");
+          killed++;
+        } catch {
+          // Already dead
+        }
+      }
+    } catch {
+      // No matching processes
+    }
+  }
+  return killed;
+}
+
+/**
+ * Find the PID of the SDK's Claude subprocess by matching its command line.
+ * We search for processes whose command line contains the debug file path,
+ * which is unique per story run.
+ */
 export async function findSdkChildPid(
   debugFile: string,
 ): Promise<number | null> {

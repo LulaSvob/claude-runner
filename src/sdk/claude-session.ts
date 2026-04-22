@@ -40,11 +40,13 @@ export async function runStory(
     onEvent: (event: StreamEvent) => void;
     onStall?: (info: { stallMs: number; totalStalls: number }) => void;
     onOrphanCleanup?: (killed: number) => void;
+    retryContext?: string | null;
     logsDir: string;
     storyName: string;
   }
 ): Promise<SessionResult> {
-  const prompt = config.promptTemplate.replace("{storyPath}", storyPath);
+  const basePrompt = config.promptTemplate.replace("{storyPath}", storyPath);
+  const prompt = opts.retryContext ? basePrompt + opts.retryContext : basePrompt;
   const abortController = new AbortController();
 
   let q: Query | null = null;

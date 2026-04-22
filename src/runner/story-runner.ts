@@ -13,6 +13,7 @@ import { LogSink } from "../logging/log-sink.js";
 import { Timer } from "../util/timer.js";
 import { deriveScope } from "../util/scope.js";
 import * as git from "../git/operations.js";
+import { killStaleTestProcesses } from "../util/process-tree.js";
 import type { StoryOutcome } from "./types.js";
 
 const execFile = promisify(execFileCb);
@@ -141,15 +142,35 @@ export async function runStory(
         `Starting: ${storyName} (attempt ${state.attempt}/${config.maxRetries})`
       );
 
+      let retryContext: string | null = null;
+
       if (state.attempt > 1) {
-        const { stashed, dirtyCount } = await git.stashWorkingTree(
+        const staleKilled = await killStaleTestProcesses();
+        if (staleKilled > 0) {
+          logger.info(`Killed ${staleKilled} stale test processes from previous attempt`);
+        }
+
+        const { stashed, dirtyCount, stashRef } = await git.stashWorkingTree(
           config.projectPath,
           `${storyName} attempt-${state.attempt - 1}`,
         );
         if (stashed) {
           logger.info(
-            `Stashed ${dirtyCount} dirty files from previous attempt (git stash pop to recover)`
+            `Stashed ${dirtyCount} dirty files from previous attempt (${stashRef})`
           );
+          await notifier.notifyStory({
+            title: "Work stashed on retry",
+            message: `${storyName} attempt ${state.attempt - 1} — ${dirtyCount} files stashed (${stashRef}). ` +
+              `Recover with: git stash pop`,
+            tags: "floppy_disk",
+          });
+          retryContext =
+            `\n\nIMPORTANT — RETRY CONTEXT: This is retry attempt ${state.attempt}. ` +
+            `The previous attempt made progress but was interrupted. ` +
+            `The work from the previous attempt has been stashed in git (${stashRef}, ${dirtyCount} files). ` +
+            `Before starting from scratch, run \`git stash pop\` to restore the previous work, ` +
+            `then review what was already done and continue the /flow from where it left off. ` +
+            `Do NOT redo work that is already complete.`;
         }
       } else {
         const dirty = await git.cleanWorkingTree(config.projectPath);
@@ -166,6 +187,7 @@ export async function runStory(
       const attemptTimer = new Timer();
 
       const sessionResult = await runClaudeSession(storyPath, config, {
+        retryContext,
         onEvent: (event) => {
           if (event.kind === "text") {
             sink.write(event.text);
@@ -341,14 +363,21 @@ export async function runStory(
           priority: "high",
           tags: "x",
         });
-        const { stashed, dirtyCount } = await git.stashWorkingTree(
+        const { stashed, dirtyCount, stashRef } = await git.stashWorkingTree(
           config.projectPath,
           `${storyName} final-attempt`,
         );
         if (stashed) {
           logger.info(
-            `Stashed ${dirtyCount} dirty files from final attempt (git stash pop to recover)`
+            `Stashed ${dirtyCount} dirty files from final attempt (${stashRef})`
           );
+          await notifier.notifyStory({
+            title: "Work stashed — story failed",
+            message: `${storyName} — ${dirtyCount} files stashed (${stashRef}). ` +
+              `Recover with: git stash pop`,
+            priority: "high",
+            tags: "floppy_disk",
+          });
         }
         return {
           status: "failed",
