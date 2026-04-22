@@ -191,7 +191,16 @@ export async function runStory(
       };
     }
 
-    throw err;
+    const errMsg = err instanceof Error ? err.message : String(err);
+    return {
+      success: false,
+      costUsd,
+      result,
+      errorSignal: { type: "server_error" as const, message: errMsg },
+      timedOut: false,
+      stalledOut: false,
+      streamStats: stats,
+    };
   } finally {
     clearTimeout(timeoutHandle);
     clearStallTimers();
