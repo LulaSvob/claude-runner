@@ -181,6 +181,9 @@ export async function runStory(
             `Will abort at ${config.streamStallTimeoutSeconds}s.`
           );
         },
+        onOrphanCleanup: (killed) => {
+          logger.info(`Cleaned up ${killed} orphaned child processes`);
+        },
         logsDir,
         storyName,
       });

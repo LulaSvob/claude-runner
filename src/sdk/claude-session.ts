@@ -3,6 +3,7 @@ import { StreamMonitor, type StreamEvent } from "./stream-monitor.js";
 import type { ErrorSignal } from "../errors/classifier.js";
 import type { ResolvedStoryConfig } from "../config/schema.js";
 import { resolve } from "node:path";
+import { findSdkChildPid, killProcessTree } from "../util/process-tree.js";
 
 export interface SessionResult {
   success: boolean;
@@ -38,6 +39,7 @@ export async function runStory(
   opts: {
     onEvent: (event: StreamEvent) => void;
     onStall?: (info: { stallMs: number; totalStalls: number }) => void;
+    onOrphanCleanup?: (killed: number) => void;
     logsDir: string;
     storyName: string;
   }
@@ -135,11 +137,11 @@ export async function runStory(
     if (killTimer) clearTimeout(killTimer);
   }
 
-  try {
-    const debugFile = config.logging.sdkDebug
-      ? resolve(opts.logsDir, `${opts.storyName}.debug.log`)
-      : undefined;
+  const debugFilePath = config.logging.sdkDebug
+    ? resolve(opts.logsDir, `${opts.storyName}.debug.log`)
+    : undefined;
 
+  try {
     q = query({
       prompt,
       options: {
@@ -149,7 +151,7 @@ export async function runStory(
         permissionMode: "bypassPermissions",
         allowDangerouslySkipPermissions: true,
         abortController,
-        ...(debugFile ? { debugFile } : {}),
+        ...(debugFilePath ? { debugFile: debugFilePath } : {}),
       },
     });
 
@@ -236,5 +238,17 @@ export async function runStory(
   } finally {
     clearTimeout(timeoutHandle);
     clearAllTimers();
+
+    // Kill any orphaned process tree left behind by the SDK.
+    // The SDK only kills its direct child; grandchildren (bash → vitest → workers) survive.
+    if (debugFilePath) {
+      const sdkPid = await findSdkChildPid(debugFilePath);
+      if (sdkPid) {
+        const killed = await killProcessTree(sdkPid);
+        if (killed > 0) {
+          opts.onOrphanCleanup?.(killed);
+        }
+      }
+    }
   }
 }
