@@ -2,6 +2,7 @@ epic:
   name: "epic-09-analytics-portfolio-admin"
 
 stories:
+  - backlog/roadmap/epic-09-analytics-portfolio-admin/us-9.0-project-entry-and-workspace-navigation.md
   - backlog/roadmap/epic-09-analytics-portfolio-admin/us-9.1-analytics-core-views.md
   - backlog/roadmap/epic-09-analytics-portfolio-admin/us-9.2-analytics-comparative-and-regulatory.md
   - backlog/roadmap/epic-09-analytics-portfolio-admin/us-9.3-portfolio-dashboard-overview-and-kanban.md
