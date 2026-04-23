@@ -6,4 +6,5 @@ stories:
   - backlog/roadmap/epic-08-export-and-certification/us-8.2-exceljs-12-sheet-math-model.md
   - backlog/roadmap/epic-08-export-and-certification/us-8.3-pdfkit-gmr-generator.md
   - backlog/roadmap/epic-08-export-and-certification/us-8.4-uncapped-streaming-csv-simulation.md
+  - backlog/bugs/open/b-006-ci-reel-editor-test-timeouts.md
   - backlog/roadmap/epic-08-export-and-certification/us-8.5-progress-streaming-and-retention.md
