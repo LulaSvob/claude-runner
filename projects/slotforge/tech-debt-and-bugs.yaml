@@ -1,0 +1,27 @@
+epic:
+  name: "tech-debt-and-bugs"
+
+stories:
+  # Open bugs (TODO) — pay first; b-004 is a math-correctness bug
+  - backlog/bugs/open/b-004-rng-nextint-power-of-2-infinite-loop.md
+
+  # Tech debt (TODO) — ordered by TD number (≈ epic order)
+  - backlog/roadmap/technical-debt/td-001-us-1.8-graceful-shutdown.md
+  - backlog/roadmap/technical-debt/td-002-us-1.6-review-suggestions.md
+  - backlog/roadmap/technical-debt/td-003-us-2.2-review-suggestions.md
+  - backlog/roadmap/technical-debt/td-004-us-2.6-review-suggestions.md
+  - backlog/roadmap/technical-debt/td-005-us-3.7-sandbox-memory-isolation.md
+  - backlog/roadmap/technical-debt/td-006-us-4.5-websocket-security-hardening.md
+  - backlog/roadmap/technical-debt/td-007-us-4.6-bullmq-optimize-job.md
+  - backlog/roadmap/technical-debt/td-008-us-5.2-combinatorial-perf-optimizations.md
+  - backlog/roadmap/technical-debt/td-010-us-5.4-shared-math-engine-context.md
+  - backlog/roadmap/technical-debt/td-011-us-6.2-review-suggestions.md
+  - backlog/roadmap/technical-debt/td-012-us-6.5-unbounded-stats-arrays.md
+  - backlog/roadmap/technical-debt/td-013-us-7.3-review-suggestions.md
+  - backlog/roadmap/technical-debt/td-014-us-7.6-review-suggestions.md
+  - backlog/roadmap/technical-debt/td-015-us-9.5-disable-reenable-users.md
+  - backlog/roadmap/technical-debt/td-016-us-11.2-review-suggestions.md
+  - backlog/roadmap/technical-debt/td-017-us-11.3-websocket-sticky-sessions.md
+  - backlog/roadmap/technical-debt/td-018-us-11.3-security-context-run-as-non-root.md
+  - backlog/roadmap/technical-debt/td-019-us-11.3-network-policy-templates.md
+  - backlog/roadmap/technical-debt/td-020-us-11.5-review-suggestions.md
