@@ -8,4 +8,6 @@ export const DEFAULT_VALUES: Omit<Required<Defaults>, "maxBudgetUsd"> = {
   quotaWaitSeconds: 3600,
   quotaMaxWaits: 12,
   authPollIntervalSeconds: 180,
+  memoryGuardRssMb: 8192,
+  memoryGuardCheckIntervalSeconds: 30,
 };

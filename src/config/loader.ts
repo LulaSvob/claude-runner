@@ -111,6 +111,11 @@ export function resolveStoryConfig(
     authPollIntervalSeconds:
       projectDefaults.authPollIntervalSeconds ??
       global.defaults.authPollIntervalSeconds,
+    memoryGuardRssMb:
+      projectDefaults.memoryGuardRssMb ?? global.defaults.memoryGuardRssMb,
+    memoryGuardCheckIntervalSeconds:
+      projectDefaults.memoryGuardCheckIntervalSeconds ??
+      global.defaults.memoryGuardCheckIntervalSeconds,
     projectPath: project.project.path,
     branch: cli.branch ?? epic.branch ?? project.project.branch,
     promptTemplate: project.promptTemplate,

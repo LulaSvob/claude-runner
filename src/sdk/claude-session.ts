@@ -3,7 +3,19 @@ import { StreamMonitor, type StreamEvent } from "./stream-monitor.js";
 import type { ErrorSignal } from "../errors/classifier.js";
 import type { ResolvedStoryConfig } from "../config/schema.js";
 import { resolve } from "node:path";
-import { findSdkChildPid, killProcessTree } from "../util/process-tree.js";
+import {
+  findSdkChildPid,
+  getRssBytesForTree,
+  killProcessTree,
+} from "../util/process-tree.js";
+
+const RUNNER_DISCIPLINE_PROMPT = `
+
+IMPORTANT — RUNNER DISCIPLINE (must follow):
+- Never invoke Bash with run_in_background=true for tests, builds, type-checks, native compilation, or any other long-running command. Background tasks bypass the tool's timeout argument and can hang indefinitely, pinning the WSL host. Run such commands in the foreground with an explicit \`timeout\` argument and read the result before issuing the next tool call.
+- Do not queue more shell tool calls while a previous heavy subprocess (vitest, native sandbox tests, isolated-vm work, type-check) might still be running. If the previous tool result has not returned, wait or abort — never fan out parallel heavy shells.
+- For tests that exercise memory limits or sandbox isolation, run a single test file at a time with a tight \`timeout\` (e.g. 60–120 s). If the run exceeds the timeout, treat that as a failure and investigate the test, not as something to retry blindly.
+`;
 
 export interface SessionResult {
   success: boolean;
@@ -12,6 +24,8 @@ export interface SessionResult {
   errorSignal: ErrorSignal | null;
   timedOut: boolean;
   stalledOut: boolean;
+  memoryExceeded: boolean;
+  memoryRssBytes: number;
   streamStats: StreamStats;
 }
 
@@ -47,11 +61,14 @@ export async function runStory(
   }
 ): Promise<SessionResult> {
   const basePrompt = config.promptTemplate.replace("{storyPath}", storyPath);
-  const prompt = opts.retryContext ? basePrompt + opts.retryContext : basePrompt;
+  const prompt =
+    basePrompt + RUNNER_DISCIPLINE_PROMPT + (opts.retryContext ?? "");
   const abortController = new AbortController();
 
   let q: Query | null = null;
   let stalledOut = false;
+  let memoryExceeded = false;
+  let memoryRssBytes = 0;
 
   const stats: StreamStats = {
     messagesReceived: 0,
@@ -141,6 +158,14 @@ export async function runStory(
   let killTimer: NodeJS.Timeout | null = null;
   const KILL_GRACE_MS = 30_000;
 
+  // Memory guard: poll the SDK child's process tree RSS and abort if it
+  // exceeds the configured limit. Catches runaway native subprocesses
+  // (e.g. isolated-vm tests allocating until WSL freezes).
+  const memoryLimitBytes = config.memoryGuardRssMb * 1024 * 1024;
+  const memoryCheckMs = config.memoryGuardCheckIntervalSeconds * 1000;
+  let memoryGuardTimer: NodeJS.Timeout | null = null;
+  let memoryGuardSdkPid: number | null = null;
+
   const timeoutHandle = setTimeout(() => {
     abortSession(abortController, q);
     // If interrupt doesn't kill the process within the grace period,
@@ -160,6 +185,36 @@ export async function runStory(
     if (stallWarningTimer) clearTimeout(stallWarningTimer);
     if (killTimer) clearTimeout(killTimer);
     if (heartbeatTimer) clearInterval(heartbeatTimer);
+    if (memoryGuardTimer) clearInterval(memoryGuardTimer);
+  }
+
+  function startMemoryGuard(debugFile: string | undefined): void {
+    if (!debugFile) return;
+    memoryGuardTimer = setInterval(() => {
+      void (async () => {
+        if (memoryGuardSdkPid === null) {
+          memoryGuardSdkPid = await findSdkChildPid(debugFile);
+          if (memoryGuardSdkPid === null) return;
+        }
+        const rss = await getRssBytesForTree(memoryGuardSdkPid);
+        if (rss === 0) {
+          // Process tree gone — let normal teardown finish.
+          return;
+        }
+        if (rss > memoryLimitBytes) {
+          memoryExceeded = true;
+          memoryRssBytes = rss;
+          abortSession(abortController, q);
+          if (!killTimer) {
+            killTimer = setTimeout(() => {
+              if (q) q.close();
+            }, KILL_GRACE_MS);
+          }
+        } else if (rss > memoryRssBytes) {
+          memoryRssBytes = rss;
+        }
+      })();
+    }, memoryCheckMs);
   }
 
   const debugFilePath = config.logging.sdkDebug
@@ -182,6 +237,7 @@ export async function runStory(
 
     resetStallTimers();
     startHeartbeat();
+    startMemoryGuard(debugFilePath);
 
     for await (const msg of q) {
       stats.messagesReceived++;
@@ -222,15 +278,23 @@ export async function runStory(
       }
     }
 
-    const timedOut = abortController.signal.aborted && !stalledOut;
+    const timedOut =
+      abortController.signal.aborted && !stalledOut && !memoryExceeded;
 
     return {
-      success: errorSignal === null && !timedOut && !stalledOut && result !== "",
+      success:
+        errorSignal === null &&
+        !timedOut &&
+        !stalledOut &&
+        !memoryExceeded &&
+        result !== "",
       costUsd,
       result,
       errorSignal,
       timedOut,
       stalledOut,
+      memoryExceeded,
+      memoryRssBytes,
       streamStats: stats,
     };
   } catch (err: unknown) {
@@ -245,8 +309,10 @@ export async function runStory(
         costUsd,
         result,
         errorSignal,
-        timedOut: aborted && !stalledOut,
+        timedOut: aborted && !stalledOut && !memoryExceeded,
         stalledOut,
+        memoryExceeded,
+        memoryRssBytes,
         streamStats: stats,
       };
     }
@@ -259,6 +325,8 @@ export async function runStory(
       errorSignal: { type: "server_error" as const, message: errMsg },
       timedOut: false,
       stalledOut: false,
+      memoryExceeded: false,
+      memoryRssBytes,
       streamStats: stats,
     };
   } finally {

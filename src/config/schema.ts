@@ -9,6 +9,8 @@ export const defaultsSchema = z.object({
   quotaWaitSeconds: z.number().int().min(60).default(3600),
   quotaMaxWaits: z.number().int().min(1).default(12),
   authPollIntervalSeconds: z.number().int().min(30).default(180),
+  memoryGuardRssMb: z.number().int().min(512).default(8192),
+  memoryGuardCheckIntervalSeconds: z.number().int().min(5).default(30),
 });
 
 export type Defaults = z.infer<typeof defaultsSchema>;
@@ -38,6 +40,8 @@ export const globalConfigSchema = z.object({
     quotaWaitSeconds: 3600,
     quotaMaxWaits: 12,
     authPollIntervalSeconds: 180,
+    memoryGuardRssMb: 8192,
+    memoryGuardCheckIntervalSeconds: 30,
   })),
   notify: notifyConfigSchema.default(() => ({ provider: "ntfy" as const, ntfy: { baseUrl: "https://ntfy.sh" } })),
   logging: loggingConfigSchema.default(() => ({ level: "info" as const, sdkDebug: true })),
@@ -112,6 +116,8 @@ export interface ResolvedStoryConfig {
   quotaWaitSeconds: number;
   quotaMaxWaits: number;
   authPollIntervalSeconds: number;
+  memoryGuardRssMb: number;
+  memoryGuardCheckIntervalSeconds: number;
   projectPath: string;
   branch: string;
   promptTemplate: string;

@@ -13,7 +13,10 @@ import { LogSink } from "../logging/log-sink.js";
 import { Timer } from "../util/timer.js";
 import { deriveScope } from "../util/scope.js";
 import * as git from "../git/operations.js";
-import { killStaleTestProcesses } from "../util/process-tree.js";
+import {
+  killOrphanProjectProcesses,
+  killStaleTestProcesses,
+} from "../util/process-tree.js";
 import type { StoryOutcome } from "./types.js";
 
 const execFile = promisify(execFileCb);
@@ -141,6 +144,13 @@ export async function runStory(
       logger.info(
         `Starting: ${storyName} (attempt ${state.attempt}/${config.maxRetries})`
       );
+
+      const orphansKilled = await killOrphanProjectProcesses(config.projectPath);
+      if (orphansKilled > 0) {
+        logger.warn(
+          `Killed ${orphansKilled} orphan process(es) in ${config.projectPath} from a prior runner crash`
+        );
+      }
 
       let retryContext: string | null = null;
 
@@ -274,6 +284,20 @@ export async function runStory(
           title: "Stream stall — retrying",
           message: `${storyName} — no messages for ${config.streamStallTimeoutSeconds}s ` +
             `(${streamStats.messagesReceived} msgs received before stall)`,
+          priority: "high",
+          tags: "warning",
+        });
+      }
+
+      if (sessionResult.memoryExceeded) {
+        const rssMb = Math.round(sessionResult.memoryRssBytes / (1024 * 1024));
+        logger.error(
+          `MEMORY GUARD ABORT: ${storyName} — SDK process tree RSS hit ${rssMb} MB ` +
+            `(limit ${config.memoryGuardRssMb} MB). Likely a runaway native subprocess.`
+        );
+        await notifier.notifyStory({
+          title: "Memory guard tripped — retrying",
+          message: `${storyName} — RSS ${rssMb} MB exceeded ${config.memoryGuardRssMb} MB`,
           priority: "high",
           tags: "warning",
         });
