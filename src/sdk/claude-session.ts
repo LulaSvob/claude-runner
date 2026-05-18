@@ -93,8 +93,10 @@ export async function runStory(
   const apiStallEscalationMs = config.apiStreamStallEscalationSeconds * 1000;
   let apiStallEscalationTimer: NodeJS.Timeout | null = null;
   let debugLogTail: DebugLogTail | null = null;
+  let advisorActive = false;
 
   function armApiStallEscalation(gapSeconds: number): void {
+    if (advisorActive) return;
     if (apiStallEscalationTimer) clearTimeout(apiStallEscalationTimer);
     opts.onApiStreamStall?.({
       gapSeconds,
@@ -129,11 +131,19 @@ export async function runStory(
     if (stats.firstMessageAt === null) stats.firstMessageAt = now;
 
     cancelApiStallEscalation();
+    advisorActive = false;
 
     if (stats.messagesReceived === 1 && debugFilePath && !debugLogTail) {
       debugLogTail = startDebugLogTail(debugFilePath, {
         onStallWarning: (info) => armApiStallEscalation(info.gapSeconds),
         onStreamCompleted: () => cancelApiStallEscalation(),
+        onAdvisorStarted: () => {
+          advisorActive = true;
+          cancelApiStallEscalation();
+        },
+        onAdvisorFinished: () => {
+          advisorActive = false;
+        },
       });
     }
 

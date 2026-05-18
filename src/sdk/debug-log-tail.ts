@@ -3,10 +3,14 @@ import { watch, statSync, createReadStream, type FSWatcher } from "node:fs";
 const STALL_RE =
   /\[WARN\] Streaming stall detected: ([\d.]+)s gap between events \(stall #(\d+)\)/;
 const COMPLETED_RE = /\[WARN\] Streaming completed with \d+ stall\(s\)/;
+const ADVISOR_CALLED_RE = /\[AdvisorTool\] Advisor tool called/;
+const ADVISOR_RESULT_RE = /\[AdvisorTool\] Advisor tool result received/;
 
 export interface DebugLogTailEvents {
   onStallWarning: (info: { gapSeconds: number; stallNumber: number }) => void;
   onStreamCompleted: () => void;
+  onAdvisorStarted: () => void;
+  onAdvisorFinished: () => void;
 }
 
 export interface DebugLogTail {
@@ -28,6 +32,14 @@ export function startDebugLogTail(
   let watcher: FSWatcher | null = null;
 
   function processLine(line: string): void {
+    if (ADVISOR_CALLED_RE.test(line)) {
+      events.onAdvisorStarted();
+      return;
+    }
+    if (ADVISOR_RESULT_RE.test(line)) {
+      events.onAdvisorFinished();
+      return;
+    }
     const stallMatch = line.match(STALL_RE);
     if (stallMatch) {
       events.onStallWarning({
