@@ -1,0 +1,8 @@
+epic:
+  name: "epic-12-qa-automation"
+
+stories:
+  - backlog/phase-4/epic-12-qa-automation/us-12.01-test-plan-management.md
+  - backlog/phase-4/epic-12-qa-automation/us-12.02-test-case-generation.md
+  - backlog/phase-4/epic-12-qa-automation/us-12.03-test-execution.md
+  - backlog/phase-4/epic-12-qa-automation/us-12.04-test-results-dashboard.md

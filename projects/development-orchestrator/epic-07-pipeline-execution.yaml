@@ -1,0 +1,8 @@
+epic:
+  name: "epic-07-pipeline-execution"
+
+stories:
+  - backlog/phase-2/epic-07-pipeline-execution/us-07.01-pipeline-execution-engine.md
+  - backlog/phase-2/epic-07-pipeline-execution/us-07.02-automated-code-quality-gates.md
+  - backlog/phase-2/epic-07-pipeline-execution/us-07.03-code-review-feedback-loop.md
+  - backlog/phase-2/epic-07-pipeline-execution/us-07.04-pipeline-dry-run.md

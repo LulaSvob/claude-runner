@@ -1,0 +1,8 @@
+epic:
+  name: "epic-02-project-profiles"
+
+stories:
+  - backlog/phase-1/epic-02-project-profiles/us-02.01-project-profile-data-model.md
+  - backlog/phase-1/epic-02-project-profiles/us-02.02-project-creation-api.md
+  - backlog/phase-1/epic-02-project-profiles/us-02.03-manual-profile-editing.md
+  - backlog/phase-1/epic-02-project-profiles/us-02.04-project-listing-dashboard.md

@@ -1,0 +1,6 @@
+epic:
+  name: "epic-08-jira-integration"
+
+stories:
+  - backlog/phase-3/epic-08-jira-integration/us-08.01-jira-inbound-sync.md
+  - backlog/phase-3/epic-08-jira-integration/us-08.02-jira-outbound-sync.md

@@ -1,0 +1,6 @@
+epic:
+  name: "epic-10-confluence-notifications"
+
+stories:
+  - backlog/phase-3/epic-10-confluence-notifications/us-10.01-confluence-integration.md
+  - backlog/phase-3/epic-10-confluence-notifications/us-10.02-code-review-notifications.md

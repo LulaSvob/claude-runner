@@ -1,0 +1,6 @@
+epic:
+  name: "epic-09-git-integration"
+
+stories:
+  - backlog/phase-3/epic-09-git-integration/us-09.01-git-webhook-integration.md
+  - backlog/phase-3/epic-09-git-integration/us-09.02-merge-request-monitoring.md

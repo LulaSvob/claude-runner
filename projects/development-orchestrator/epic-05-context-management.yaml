@@ -1,0 +1,7 @@
+epic:
+  name: "epic-05-context-management"
+
+stories:
+  - backlog/phase-2/epic-05-context-management/us-05.01-hierarchical-context-assembly.md
+  - backlog/phase-2/epic-05-context-management/us-05.02-context-window-optimization.md
+  - backlog/phase-2/epic-05-context-management/us-05.03-session-history-continuity.md

@@ -213,6 +213,12 @@ export async function runStory(
             `Will abort at ${config.streamStallTimeoutSeconds}s.`
           );
         },
+        onApiStreamStall: (info) => {
+          logger.warn(
+            `API stream stall detected: ${info.gapSeconds}s SSE gap. ` +
+            `Will escalate abort in ${info.escalationSeconds}s if no recovery.`
+          );
+        },
         onOrphanCleanup: (killed) => {
           logger.info(`Cleaned up ${killed} orphaned child processes`);
         },
@@ -243,8 +249,9 @@ export async function runStory(
                 storyName,
                 commitTemplate: config.git.commitTemplate,
                 coAuthor: config.git.coAuthor,
+                autoPush: config.git.autoPush,
               });
-              logger.info(`Committed and pushed: ${storyName}`);
+              logger.info(config.git.autoPush ? `Committed and pushed: ${storyName}` : `Committed (push disabled): ${storyName}`);
             } catch (err) {
               logger.error(
                 `Commit/push failed: ${err instanceof Error ? err.message : err}`
@@ -274,19 +281,34 @@ export async function runStory(
 
       if (sessionResult.stalledOut) {
         const { streamStats } = sessionResult;
-        logger.error(
-          `STREAM STALL ABORT: ${storyName} — no SDK messages for ${config.streamStallTimeoutSeconds}s. ` +
-          `Messages received: ${streamStats.messagesReceived}, ` +
-          `total stalls: ${streamStats.totalStalls}, ` +
-          `longest stall: ${Math.round(streamStats.longestStallMs / 1000)}s`
-        );
-        await notifier.notifyStory({
-          title: "Stream stall — retrying",
-          message: `${storyName} — no messages for ${config.streamStallTimeoutSeconds}s ` +
-            `(${streamStats.messagesReceived} msgs received before stall)`,
-          priority: "high",
-          tags: "warning",
-        });
+        if (sessionResult.apiStreamStalled) {
+          logger.error(
+            `API STREAM STALL: ${storyName} — Claude Code debug log reported SSE stall, ` +
+            `escalation timer (${config.apiStreamStallEscalationSeconds}s) expired without recovery. ` +
+            `Messages received: ${streamStats.messagesReceived}`
+          );
+          await notifier.notifyStory({
+            title: "API stream stall — retrying",
+            message: `${storyName} — SSE stream died mid-response, escalation after ${config.apiStreamStallEscalationSeconds}s ` +
+              `(${streamStats.messagesReceived} msgs received before stall)`,
+            priority: "high",
+            tags: "warning",
+          });
+        } else {
+          logger.error(
+            `STREAM STALL ABORT: ${storyName} — no SDK messages for ${config.streamStallTimeoutSeconds}s. ` +
+            `Messages received: ${streamStats.messagesReceived}, ` +
+            `total stalls: ${streamStats.totalStalls}, ` +
+            `longest stall: ${Math.round(streamStats.longestStallMs / 1000)}s`
+          );
+          await notifier.notifyStory({
+            title: "Stream stall — retrying",
+            message: `${storyName} — no messages for ${config.streamStallTimeoutSeconds}s ` +
+              `(${streamStats.messagesReceived} msgs received before stall)`,
+            priority: "high",
+            tags: "warning",
+          });
+        }
       }
 
       if (sessionResult.memoryExceeded) {

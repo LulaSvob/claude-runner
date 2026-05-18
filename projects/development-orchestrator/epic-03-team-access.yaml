@@ -1,0 +1,7 @@
+epic:
+  name: "epic-03-team-access"
+
+stories:
+  - backlog/phase-1/epic-03-team-access/us-03.01-team-model-and-assignment.md
+  - backlog/phase-1/epic-03-team-access/us-03.02-role-based-access-control.md
+  - backlog/phase-1/epic-03-team-access/us-03.03-approval-sla-tracking.md

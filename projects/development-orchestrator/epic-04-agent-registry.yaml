@@ -1,0 +1,10 @@
+epic:
+  name: "epic-04-agent-registry"
+
+stories:
+  - backlog/phase-1/epic-04-agent-registry/us-04.01-agent-schema-contract.md
+  - backlog/phase-1/epic-04-agent-registry/us-04.02-agent-registry-model.md
+  - backlog/phase-1/epic-04-agent-registry/us-04.03-agent-schema-validation.md
+  - backlog/phase-1/epic-04-agent-registry/us-04.04-agent-version-management.md
+  - backlog/phase-1/epic-04-agent-registry/us-04.05-agent-guardrails.md
+  - backlog/phase-1/epic-04-agent-registry/us-04.06-mock-agent-layer.md

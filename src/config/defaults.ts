@@ -5,6 +5,7 @@ export const DEFAULT_VALUES: Omit<Required<Defaults>, "maxBudgetUsd"> = {
   maxRetries: 2,
   storyTimeoutSeconds: 10800,
   streamStallTimeoutSeconds: 300,
+  apiStreamStallEscalationSeconds: 90,
   quotaWaitSeconds: 3600,
   quotaMaxWaits: 12,
   authPollIntervalSeconds: 180,

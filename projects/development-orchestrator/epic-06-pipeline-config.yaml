@@ -1,0 +1,7 @@
+epic:
+  name: "epic-06-pipeline-config"
+
+stories:
+  - backlog/phase-2/epic-06-pipeline-config/us-06.01-pipeline-config-model.md
+  - backlog/phase-2/epic-06-pipeline-config/us-06.02-flexible-work-scope.md
+  - backlog/phase-2/epic-06-pipeline-config/us-06.03-git-branching-delegation.md

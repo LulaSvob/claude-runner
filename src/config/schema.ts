@@ -5,6 +5,7 @@ export const defaultsSchema = z.object({
   maxRetries: z.number().int().min(1).default(2),
   storyTimeoutSeconds: z.number().int().min(60).default(10800),
   streamStallTimeoutSeconds: z.number().int().min(60).default(300),
+  apiStreamStallEscalationSeconds: z.number().int().min(30).default(90),
   maxBudgetUsd: z.number().positive().optional(),
   quotaWaitSeconds: z.number().int().min(60).default(3600),
   quotaMaxWaits: z.number().int().min(1).default(12),
@@ -37,6 +38,7 @@ export const globalConfigSchema = z.object({
     maxRetries: 2,
     storyTimeoutSeconds: 10800,
     streamStallTimeoutSeconds: 300,
+    apiStreamStallEscalationSeconds: 90,
     quotaWaitSeconds: 3600,
     quotaMaxWaits: 12,
     authPollIntervalSeconds: 180,
@@ -94,6 +96,7 @@ export const epicConfigSchema = z.object({
   maxRetries: z.number().int().min(1).optional(),
   storyTimeoutSeconds: z.number().int().min(60).optional(),
   streamStallTimeoutSeconds: z.number().int().min(60).optional(),
+  apiStreamStallEscalationSeconds: z.number().int().min(30).optional(),
   stories: z.array(z.string()).min(1),
 });
 
@@ -112,6 +115,7 @@ export interface ResolvedStoryConfig {
   maxRetries: number;
   storyTimeoutSeconds: number;
   streamStallTimeoutSeconds: number;
+  apiStreamStallEscalationSeconds: number;
   maxBudgetUsd: number | undefined;
   quotaWaitSeconds: number;
   quotaMaxWaits: number;

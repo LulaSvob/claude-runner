@@ -31,8 +31,8 @@ function addGlobalOpts(cmd: Command): Command {
   return cmd
     .option("--project <name>", "Project name (matches projects/<name>/)")
     .option("--model <model>", "Override Claude model")
-    .option("--timeout <seconds>", "Override story timeout", parseInt)
-    .option("--max-retries <n>", "Override max retries", parseInt)
+    .option("--timeout <seconds>", "Override story timeout", (v: string) => parseInt(v, 10))
+    .option("--max-retries <n>", "Override max retries", (v: string) => parseInt(v, 10))
     .option("--branch <branch>", "Override branch")
     .option("-v, --verbose", "Debug logging")
     .option("-q, --quiet", "Log to file only")
@@ -65,8 +65,8 @@ addGlobalOpts(
   program
     .command("run-all")
     .description("Run all epics for a project")
-    .option("--from <n>", "Start from epic N (1-based)", parseInt, 1)
-    .option("--to <n>", "End at epic N", parseInt, 99)
+    .option("--from <n>", "Start from epic N (1-based)", (v: string) => parseInt(v, 10), 1)
+    .option("--to <n>", "End at epic N", (v: string) => parseInt(v, 10), 99)
     .option("--skip-failed", "Continue past failed epics")
     .option("--include-optional", "Include optional epics (e.g., epic-12)")
 ).action(async (opts) => {
@@ -92,7 +92,7 @@ addGlobalOpts(
   program
     .command("run-epic <epic-name>")
     .description("Run one epic's stories")
-    .option("--start-from <n>", "Resume from story N (1-based)", parseInt, 1)
+    .option("--start-from <n>", "Resume from story N (1-based)", (v: string) => parseInt(v, 10), 1)
 ).action(async (epicName: string, opts) => {
   if (!opts.project) {
     console.error("Error: --project is required");

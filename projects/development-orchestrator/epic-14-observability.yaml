@@ -1,0 +1,8 @@
+epic:
+  name: "epic-14-observability"
+
+stories:
+  - backlog/phase-5/epic-14-observability/us-14.01-agent-performance-scoring.md
+  - backlog/phase-5/epic-14-observability/us-14.02-cross-project-analytics.md
+  - backlog/phase-5/epic-14-observability/us-14.03-cost-allocation-dashboard.md
+  - backlog/phase-5/epic-14-observability/us-14.04-pipeline-execution-dashboards.md

@@ -1,4 +1,5 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
+import { resolveClaudePath } from "./claude-path.js";
 
 const AUTH_PROBE_TIMEOUT_MS = 60_000;
 
@@ -27,6 +28,7 @@ export async function testAuth(
         permissionMode: "bypassPermissions",
         allowDangerouslySkipPermissions: true,
         abortController,
+        pathToClaudeCodeExecutable: resolveClaudePath(),
       },
     });
 

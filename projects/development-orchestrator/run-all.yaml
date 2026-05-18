@@ -1,0 +1,23 @@
+epicOrder:
+  - epic-01-infrastructure
+  - epic-02-project-profiles
+  - epic-03-team-access
+  - epic-04-agent-registry
+  - epic-05-context-management
+  - epic-06-pipeline-config
+  - epic-07-pipeline-execution
+  - epic-08-jira-integration
+  - epic-09-git-integration
+  - epic-10-confluence-notifications
+  - epic-11-agent-improvement
+  - epic-12-qa-automation
+  - epic-13-code-delivery
+  - epic-14-observability
+
+optional:
+  - epic-11-agent-improvement
+  - epic-12-qa-automation
+  - epic-13-code-delivery
+  - epic-14-observability
+
+skipFailed: false

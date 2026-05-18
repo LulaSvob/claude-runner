@@ -100,6 +100,7 @@ export async function commitAndPush(
     storyName: string;
     commitTemplate: string;
     coAuthor: string;
+    autoPush?: boolean;
   }
 ): Promise<void> {
   await git(["add", "-A"], cwd);
@@ -111,7 +112,9 @@ export async function commitAndPush(
   const message = `${subject}\n\nAutomated by claude-runner\n\nCo-Authored-By: ${opts.coAuthor}`;
 
   await git(["commit", "-m", message], cwd);
-  await git(["push", "origin", branch], cwd);
+  if (opts.autoPush !== false) {
+    await git(["push", "origin", branch], cwd);
+  }
 }
 
 export async function forceBranch(

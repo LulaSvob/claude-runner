@@ -1,0 +1,8 @@
+epic:
+  name: "epic-01-infrastructure"
+
+stories:
+  - backlog/phase-1/epic-01-infrastructure/us-01.01-django-project-scaffolding.md
+  - backlog/phase-1/epic-01-infrastructure/us-01.02-docker-compose-setup.md
+  - backlog/phase-1/epic-01-infrastructure/us-01.03-frontend-scaffolding.md
+  - backlog/phase-1/epic-01-infrastructure/us-01.04-dev-environment-script.md

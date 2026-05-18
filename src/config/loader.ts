@@ -102,6 +102,10 @@ export function resolveStoryConfig(
       epic.streamStallTimeoutSeconds ??
       projectDefaults.streamStallTimeoutSeconds ??
       global.defaults.streamStallTimeoutSeconds,
+    apiStreamStallEscalationSeconds:
+      epic.apiStreamStallEscalationSeconds ??
+      projectDefaults.apiStreamStallEscalationSeconds ??
+      global.defaults.apiStreamStallEscalationSeconds,
     maxBudgetUsd:
       projectDefaults.maxBudgetUsd ?? global.defaults.maxBudgetUsd,
     quotaWaitSeconds:
