@@ -62,7 +62,25 @@ export async function runEpic(
       };
     }
   } else {
-    logger.info("Claude is ready");
+    if (
+      authResult.quotaUtilization !== undefined &&
+      authResult.quotaUtilization >= storyConfig.quotaPauseThreshold
+    ) {
+      const pct = Math.round(authResult.quotaUtilization * 100);
+      const waitMins = Math.ceil(storyConfig.quotaWaitSeconds / 60);
+      logger.warn(
+        `Quota at ${pct}% (threshold ${Math.round(storyConfig.quotaPauseThreshold * 100)}%) — pausing ${waitMins}m before starting epic`
+      );
+      await notifier.notifyStory({
+        title: "Quota high — pausing before epic",
+        message: `${epicName} — quota at ${pct}%, waiting ${waitMins}m`,
+        tags: "hourglass_flowing_sand",
+      });
+      await new Promise((r) => setTimeout(r, storyConfig.quotaWaitSeconds * 1000));
+      logger.info("Quota pause over, starting epic...");
+    } else {
+      logger.info("Claude is ready");
+    }
   }
 
   logger.info("═".repeat(50));
@@ -145,6 +163,25 @@ export async function runEpic(
         message: `[${step}/${epicConfig.stories.length}] ${storyName} (${storyTimer.format()})`,
         tags: "white_check_mark",
       });
+
+      if (
+        outcome.quotaUtilization !== undefined &&
+        outcome.quotaUtilization >= storyConfig.quotaPauseThreshold &&
+        step < epicConfig.stories.length
+      ) {
+        const pct = Math.round(outcome.quotaUtilization * 100);
+        const waitMins = Math.ceil(storyConfig.quotaWaitSeconds / 60);
+        logger.warn(
+          `Quota at ${pct}% after ${storyName} — pausing ${waitMins}m before next story`
+        );
+        await notifier.notifyStory({
+          title: "Quota high — pausing",
+          message: `${storyName} done, quota at ${pct}%. Waiting ${waitMins}m.`,
+          tags: "hourglass_flowing_sand",
+        });
+        await new Promise((r) => setTimeout(r, storyConfig.quotaWaitSeconds * 1000));
+        logger.info("Quota pause over, continuing...");
+      }
     } else if (outcome.status === "failed") {
       failed++;
       exitCode = outcome.exitCode;

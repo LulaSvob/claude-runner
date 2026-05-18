@@ -3,6 +3,7 @@ export type StoryOutcome =
       status: "success";
       durationMs: number;
       costUsd: number;
+      quotaUtilization?: number;
     }
   | {
       status: "skipped";

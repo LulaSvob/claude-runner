@@ -11,4 +11,5 @@ export const DEFAULT_VALUES: Omit<Required<Defaults>, "maxBudgetUsd"> = {
   authPollIntervalSeconds: 180,
   memoryGuardRssMb: 8192,
   memoryGuardCheckIntervalSeconds: 30,
+  quotaPauseThreshold: 0.90,
 };

@@ -29,6 +29,7 @@ export interface SessionResult {
   apiStreamStalled: boolean;
   memoryExceeded: boolean;
   memoryRssBytes: number;
+  quotaUtilization: number | null;
   streamStats: StreamStats;
 }
 
@@ -74,6 +75,7 @@ export async function runStory(
   let apiStreamStalled = false;
   let memoryExceeded = false;
   let memoryRssBytes = 0;
+  let quotaUtilization: number | null = null;
 
   const stats: StreamStats = {
     messagesReceived: 0,
@@ -317,6 +319,13 @@ export async function runStory(
         break;
       }
 
+      if (signal && signal.type === "quota_warning") {
+        const util = signal.utilization;
+        if (util !== undefined && (quotaUtilization === null || util > quotaUtilization)) {
+          quotaUtilization = util;
+        }
+      }
+
       if (
         signal &&
         (signal.type === "api_error" || signal.type === "server_error")
@@ -350,6 +359,7 @@ export async function runStory(
       apiStreamStalled,
       memoryExceeded,
       memoryRssBytes,
+      quotaUtilization,
       streamStats: stats,
     };
   } catch (err: unknown) {
@@ -369,6 +379,7 @@ export async function runStory(
         apiStreamStalled,
         memoryExceeded,
         memoryRssBytes,
+        quotaUtilization,
         streamStats: stats,
       };
     }
@@ -384,6 +395,7 @@ export async function runStory(
       apiStreamStalled: false,
       memoryExceeded: false,
       memoryRssBytes,
+      quotaUtilization,
       streamStats: stats,
     };
   } finally {

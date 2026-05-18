@@ -276,6 +276,7 @@ export async function runStory(
           status: "success",
           durationMs: timer.elapsedMs(),
           costUsd: sessionResult.costUsd,
+          quotaUtilization: sessionResult.quotaUtilization ?? undefined,
         };
       }
 

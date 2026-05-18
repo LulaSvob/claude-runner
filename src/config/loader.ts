@@ -120,6 +120,10 @@ export function resolveStoryConfig(
     memoryGuardCheckIntervalSeconds:
       projectDefaults.memoryGuardCheckIntervalSeconds ??
       global.defaults.memoryGuardCheckIntervalSeconds,
+    quotaPauseThreshold:
+      epic.quotaPauseThreshold ??
+      projectDefaults.quotaPauseThreshold ??
+      global.defaults.quotaPauseThreshold,
     projectPath: project.project.path,
     branch: cli.branch ?? epic.branch ?? project.project.branch,
     promptTemplate: project.promptTemplate,

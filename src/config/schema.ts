@@ -12,6 +12,7 @@ export const defaultsSchema = z.object({
   authPollIntervalSeconds: z.number().int().min(30).default(180),
   memoryGuardRssMb: z.number().int().min(512).default(8192),
   memoryGuardCheckIntervalSeconds: z.number().int().min(5).default(30),
+  quotaPauseThreshold: z.number().min(0).max(1).default(0.90),
 });
 
 export type Defaults = z.infer<typeof defaultsSchema>;
@@ -44,6 +45,7 @@ export const globalConfigSchema = z.object({
     authPollIntervalSeconds: 180,
     memoryGuardRssMb: 8192,
     memoryGuardCheckIntervalSeconds: 30,
+    quotaPauseThreshold: 0.90,
   })),
   notify: notifyConfigSchema.default(() => ({ provider: "ntfy" as const, ntfy: { baseUrl: "https://ntfy.sh" } })),
   logging: loggingConfigSchema.default(() => ({ level: "info" as const, sdkDebug: true })),
@@ -97,6 +99,7 @@ export const epicConfigSchema = z.object({
   storyTimeoutSeconds: z.number().int().min(60).optional(),
   streamStallTimeoutSeconds: z.number().int().min(60).optional(),
   apiStreamStallEscalationSeconds: z.number().int().min(30).optional(),
+  quotaPauseThreshold: z.number().min(0).max(1).optional(),
   stories: z.array(z.string()).min(1),
 });
 
@@ -122,6 +125,7 @@ export interface ResolvedStoryConfig {
   authPollIntervalSeconds: number;
   memoryGuardRssMb: number;
   memoryGuardCheckIntervalSeconds: number;
+  quotaPauseThreshold: number;
   projectPath: string;
   branch: string;
   promptTemplate: string;

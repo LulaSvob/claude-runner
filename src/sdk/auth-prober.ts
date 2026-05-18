@@ -4,7 +4,7 @@ import { resolveClaudePath } from "./claude-path.js";
 const AUTH_PROBE_TIMEOUT_MS = 60_000;
 
 export type AuthProbeResult =
-  | { ok: true }
+  | { ok: true; quotaUtilization?: number }
   | { ok: false; reason: "auth" | "quota" | "timeout" | "error"; message: string };
 
 export async function testAuth(
@@ -32,24 +32,32 @@ export async function testAuth(
       },
     });
 
+    let probeUtilization: number | undefined;
+
     for await (const msg of q) {
       info(`Auth probe msg: type=${msg.type}${"subtype" in msg && msg.subtype ? ` subtype=${msg.subtype}` : ""}${"error" in msg && msg.error ? ` error=${msg.error}` : ""}`);
 
       if (
         msg.type === "rate_limit_event" &&
-        "rate_limit_info" in msg &&
-        (msg as { rate_limit_info: { status: string } }).rate_limit_info.status === "rejected"
+        "rate_limit_info" in msg
       ) {
-        info("Auth probe: quota rejected");
-        try { await q.interrupt(); } catch {}
-        return { ok: false, reason: "quota", message: "Quota exhausted" };
+        const rli = (msg as { rate_limit_info: { status: string; utilization?: number } }).rate_limit_info;
+        if (rli.status === "rejected") {
+          info("Auth probe: quota rejected");
+          try { await q.interrupt(); } catch {}
+          return { ok: false, reason: "quota", message: "Quota exhausted" };
+        }
+        if (rli.status === "allowed_warning" && rli.utilization !== undefined) {
+          probeUtilization = rli.utilization;
+          info(`Auth probe: quota warning, utilization=${rli.utilization}`);
+        }
       }
 
       if (msg.type === "assistant" && msg.error === "authentication_failed") {
         return { ok: false, reason: "auth", message: "Authentication failed" };
       }
       if (msg.type === "result" && msg.subtype === "success") {
-        return { ok: true };
+        return { ok: true, quotaUtilization: probeUtilization };
       }
       if (msg.type === "result") {
         const detail = JSON.stringify(msg).slice(0, 500);
