@@ -19,9 +19,10 @@ export async function runEpic(
     logsBaseDir: string;
     startFrom: number;
     dryRun: boolean;
+    skipFailed: boolean;
   }
 ): Promise<EpicResult> {
-  const { logger, notifier, logsBaseDir, startFrom, dryRun } = deps;
+  const { logger, notifier, logsBaseDir, startFrom, dryRun, skipFailed } = deps;
   const epicName = epicConfig.epic.name;
   const logsDir = resolve(logsBaseDir, epicName);
   const timer = new Timer();
@@ -196,6 +197,17 @@ export async function runEpic(
           priority: "urgent",
           tags: "rotating_light",
         });
+        break;
+      } else if (skipFailed) {
+        logger.warn(
+          `skipFailed=true — continuing epic despite failure in ${storyName}`
+        );
+        await notifier.notifyStory({
+          title: "Story failed — continuing epic",
+          message: `[${step}/${epicConfig.stories.length}] ${storyName} — ${outcome.reason}`,
+          priority: "high",
+          tags: "warning",
+        });
       } else {
         await notifier.notifyStory({
           title: "Story failed — stopping epic",
@@ -203,8 +215,8 @@ export async function runEpic(
           priority: "urgent",
           tags: "rotating_light",
         });
+        break;
       }
-      break;
     }
   }
 

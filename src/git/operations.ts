@@ -92,15 +92,13 @@ export async function hasChanges(cwd: string): Promise<boolean> {
   }
 }
 
-export async function commitAndPush(
+export async function commit(
   cwd: string,
-  branch: string,
   opts: {
     scope: string;
     storyName: string;
     commitTemplate: string;
     coAuthor: string;
-    autoPush?: boolean;
   }
 ): Promise<void> {
   await git(["add", "-A"], cwd);
@@ -112,9 +110,13 @@ export async function commitAndPush(
   const message = `${subject}\n\nAutomated by claude-runner\n\nCo-Authored-By: ${opts.coAuthor}`;
 
   await git(["commit", "-m", message], cwd);
-  if (opts.autoPush !== false) {
-    await git(["push", "origin", branch], cwd);
-  }
+}
+
+export async function push(
+  cwd: string,
+  branch: string,
+): Promise<void> {
+  await git(["push", "origin", branch], cwd);
 }
 
 export async function forceBranch(

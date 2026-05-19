@@ -244,28 +244,39 @@ export async function runStory(
         if (await git.hasChanges(config.projectPath)) {
           if (config.git.autoCommit) {
             try {
-              await git.commitAndPush(config.projectPath, config.branch, {
+              await git.commit(config.projectPath, {
                 scope,
                 storyName,
                 commitTemplate: config.git.commitTemplate,
                 coAuthor: config.git.coAuthor,
-                autoPush: config.git.autoPush,
               });
-              logger.info(config.git.autoPush ? `Committed and pushed: ${storyName}` : `Committed (push disabled): ${storyName}`);
             } catch (err) {
               logger.error(
-                `Commit/push failed: ${err instanceof Error ? err.message : err}`
+                `Commit failed: ${err instanceof Error ? err.message : err}`
               );
               const action = rsm.handleNormalFailure();
               if (action.action === "abort") {
                 return {
                   status: "failed",
                   exitCode: action.exitCode,
-                  reason: `Commit/push failed: ${err instanceof Error ? err.message : "unknown"}`,
+                  reason: `Commit failed: ${err instanceof Error ? err.message : "unknown"}`,
                   durationMs: timer.elapsedMs(),
                 };
               }
               continue;
+            }
+
+            if (config.git.autoPush) {
+              try {
+                await git.push(config.projectPath, config.branch);
+                logger.info(`Committed and pushed: ${storyName}`);
+              } catch (err) {
+                logger.warn(
+                  `Push failed for ${storyName} (commit succeeded — push manually later): ${err instanceof Error ? err.message : err}`
+                );
+              }
+            } else {
+              logger.info(`Committed (push disabled): ${storyName}`);
             }
           }
         } else {

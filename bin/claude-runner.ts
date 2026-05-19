@@ -133,6 +133,7 @@ addGlobalOpts(
     logsBaseDir,
     startFrom: opts.startFrom,
     dryRun: opts.dryRun ?? false,
+    skipFailed: false,
   });
 
   process.exit(result.exitCode);

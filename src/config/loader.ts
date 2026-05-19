@@ -108,6 +108,8 @@ export function resolveStoryConfig(
       global.defaults.apiStreamStallEscalationSeconds,
     maxBudgetUsd:
       projectDefaults.maxBudgetUsd ?? global.defaults.maxBudgetUsd,
+    advisorModel:
+      projectDefaults.advisorModel ?? global.defaults.advisorModel,
     quotaWaitSeconds:
       projectDefaults.quotaWaitSeconds ?? global.defaults.quotaWaitSeconds,
     quotaMaxWaits:

@@ -7,6 +7,7 @@ export const defaultsSchema = z.object({
   streamStallTimeoutSeconds: z.number().int().min(60).default(300),
   apiStreamStallEscalationSeconds: z.number().int().min(30).default(90),
   maxBudgetUsd: z.number().positive().optional(),
+  advisorModel: z.string().optional(),
   quotaWaitSeconds: z.number().int().min(60).default(3600),
   quotaMaxWaits: z.number().int().min(1).default(12),
   authPollIntervalSeconds: z.number().int().min(30).default(180),
@@ -120,6 +121,7 @@ export interface ResolvedStoryConfig {
   streamStallTimeoutSeconds: number;
   apiStreamStallEscalationSeconds: number;
   maxBudgetUsd: number | undefined;
+  advisorModel: string | undefined;
   quotaWaitSeconds: number;
   quotaMaxWaits: number;
   authPollIntervalSeconds: number;

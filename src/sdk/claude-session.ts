@@ -288,6 +288,7 @@ export async function runStory(
         abortController,
         pathToClaudeCodeExecutable: resolveClaudePath(),
         ...(debugFilePath ? { debugFile: debugFilePath } : {}),
+        settings: config.advisorModel ? { advisorModel: config.advisorModel } : undefined,
       },
     });
 

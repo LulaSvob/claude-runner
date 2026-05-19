@@ -20,4 +20,4 @@ optional:
   - epic-13-code-delivery
   - epic-14-observability
 
-skipFailed: false
+skipFailed: true

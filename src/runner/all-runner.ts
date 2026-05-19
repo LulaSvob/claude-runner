@@ -121,6 +121,7 @@ export async function runAll(opts: {
       logsBaseDir,
       startFrom: 1,
       dryRun: opts.dryRun,
+      skipFailed: opts.skipFailed || runAllConfig.skipFailed,
     });
 
     if (result.exitCode === 0) {
