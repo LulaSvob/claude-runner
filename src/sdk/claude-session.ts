@@ -1,6 +1,5 @@
 import { query, type Query, type SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { StreamMonitor, type StreamEvent } from "./stream-monitor.js";
-import { startDebugLogTail, type DebugLogTail } from "./debug-log-tail.js";
 import type { ErrorSignal } from "../errors/classifier.js";
 import type { ResolvedStoryConfig } from "../config/schema.js";
 import { resolve } from "node:path";
@@ -26,7 +25,6 @@ export interface SessionResult {
   errorSignal: ErrorSignal | null;
   timedOut: boolean;
   stalledOut: boolean;
-  apiStreamStalled: boolean;
   memoryExceeded: boolean;
   memoryRssBytes: number;
   quotaUtilization: number | null;
@@ -57,7 +55,6 @@ export async function runStory(
   opts: {
     onEvent: (event: StreamEvent) => void;
     onStall?: (info: { stallMs: number; totalStalls: number }) => void;
-    onApiStreamStall?: (info: { gapSeconds: number; escalationSeconds: number }) => void;
     onOrphanCleanup?: (killed: number) => void;
     onSuspectSleep?: (info: { expectedMs: number; actualMs: number }) => void;
     retryContext?: string | null;
@@ -72,7 +69,6 @@ export async function runStory(
 
   let q: Query | null = null;
   let stalledOut = false;
-  let apiStreamStalled = false;
   let memoryExceeded = false;
   let memoryRssBytes = 0;
   let quotaUtilization: number | null = null;
@@ -92,35 +88,6 @@ export async function runStory(
   let lastMsgTime = Date.now();
   let awaitingToolResult = false;
 
-  const apiStallEscalationMs = config.apiStreamStallEscalationSeconds * 1000;
-  let apiStallEscalationTimer: NodeJS.Timeout | null = null;
-  let debugLogTail: DebugLogTail | null = null;
-  let advisorActive = false;
-
-  function armApiStallEscalation(gapSeconds: number): void {
-    if (advisorActive) return;
-    if (apiStallEscalationTimer) clearTimeout(apiStallEscalationTimer);
-    opts.onApiStreamStall?.({
-      gapSeconds,
-      escalationSeconds: config.apiStreamStallEscalationSeconds,
-    });
-    apiStallEscalationTimer = setTimeout(() => {
-      apiStreamStalled = true;
-      stalledOut = true;
-      abortSession(abortController, q);
-      killTimer = setTimeout(() => {
-        if (q) q.close();
-      }, KILL_GRACE_MS);
-    }, apiStallEscalationMs);
-  }
-
-  function cancelApiStallEscalation(): void {
-    if (apiStallEscalationTimer) {
-      clearTimeout(apiStallEscalationTimer);
-      apiStallEscalationTimer = null;
-    }
-  }
-
   function resetStallTimers(): void {
     const now = Date.now();
     const gap = now - lastMsgTime;
@@ -132,28 +99,9 @@ export async function runStory(
     stats.lastMessageAt = now;
     if (stats.firstMessageAt === null) stats.firstMessageAt = now;
 
-    cancelApiStallEscalation();
-    advisorActive = false;
-
-    if (stats.messagesReceived === 1 && debugFilePath && !debugLogTail) {
-      debugLogTail = startDebugLogTail(debugFilePath, {
-        onStallWarning: (info) => armApiStallEscalation(info.gapSeconds),
-        onStreamCompleted: () => cancelApiStallEscalation(),
-        onAdvisorStarted: () => {
-          advisorActive = true;
-          cancelApiStallEscalation();
-        },
-        onAdvisorFinished: () => {
-          advisorActive = false;
-        },
-      });
-    }
-
     if (stallTimer) clearTimeout(stallTimer);
     if (stallWarningTimer) clearTimeout(stallWarningTimer);
 
-    // Don't arm stall timers while waiting for a tool to finish —
-    // silence is expected during long-running bash commands.
     if (awaitingToolResult) return;
 
     stallWarningTimer = setTimeout(() => {
@@ -236,11 +184,9 @@ export async function runStory(
   function clearAllTimers(): void {
     if (stallTimer) clearTimeout(stallTimer);
     if (stallWarningTimer) clearTimeout(stallWarningTimer);
-    if (apiStallEscalationTimer) clearTimeout(apiStallEscalationTimer);
     if (killTimer) clearTimeout(killTimer);
     if (heartbeatTimer) clearInterval(heartbeatTimer);
     if (memoryGuardTimer) clearInterval(memoryGuardTimer);
-    debugLogTail?.stop();
   }
 
   function startMemoryGuard(debugFile: string | undefined): void {
@@ -357,7 +303,7 @@ export async function runStory(
       errorSignal,
       timedOut,
       stalledOut,
-      apiStreamStalled,
+
       memoryExceeded,
       memoryRssBytes,
       quotaUtilization,
@@ -377,7 +323,7 @@ export async function runStory(
         errorSignal,
         timedOut: aborted && !stalledOut && !memoryExceeded,
         stalledOut,
-        apiStreamStalled,
+  
         memoryExceeded,
         memoryRssBytes,
         quotaUtilization,
@@ -393,7 +339,6 @@ export async function runStory(
       errorSignal: { type: "server_error" as const, message: errMsg },
       timedOut: false,
       stalledOut: false,
-      apiStreamStalled: false,
       memoryExceeded: false,
       memoryRssBytes,
       quotaUtilization,

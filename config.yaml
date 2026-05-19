@@ -4,7 +4,6 @@ defaults:
   maxRetries: 5
   storyTimeoutSeconds: 10800
   streamStallTimeoutSeconds: 600
-  apiStreamStallEscalationSeconds: 240
   quotaWaitSeconds: 3600
   quotaMaxWaits: 12
   authPollIntervalSeconds: 180
