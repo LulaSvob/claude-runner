@@ -8,6 +8,7 @@ import type { EpicConfig } from "../config/schema.js";
 import type { Notifier } from "../notify/ntfy.js";
 import type { Logger } from "../logging/logger.js";
 import { Timer } from "../util/timer.js";
+import { createResumableWaiter } from "../util/resumable-waiter.js";
 import type { EpicResult, StoryOutcome } from "./types.js";
 
 export async function runEpic(
@@ -26,6 +27,7 @@ export async function runEpic(
   const epicName = epicConfig.epic.name;
   const logsDir = resolve(logsBaseDir, epicName);
   const timer = new Timer();
+  const waiter = createResumableWaiter(storyConfig.resumeSentinel);
 
   let completed = 0;
   let failed = 0;
@@ -77,7 +79,7 @@ export async function runEpic(
         message: `${epicName} — quota at ${pct}%, waiting ${waitMins}m`,
         tags: "hourglass_flowing_sand",
       });
-      await new Promise((r) => setTimeout(r, storyConfig.quotaWaitSeconds * 1000));
+      await waiter.wait(storyConfig.quotaWaitSeconds * 1000);
       logger.info("Quota pause over, starting epic...");
     } else {
       logger.info("Claude is ready");
@@ -180,7 +182,7 @@ export async function runEpic(
           message: `${storyName} done, quota at ${pct}%. Waiting ${waitMins}m.`,
           tags: "hourglass_flowing_sand",
         });
-        await new Promise((r) => setTimeout(r, storyConfig.quotaWaitSeconds * 1000));
+        await waiter.wait(storyConfig.quotaWaitSeconds * 1000);
         logger.info("Quota pause over, continuing...");
       }
     } else if (outcome.status === "failed") {
@@ -240,6 +242,8 @@ export async function runEpic(
       tags: "warning",
     });
   }
+
+  waiter.dispose();
 
   return {
     epicName,

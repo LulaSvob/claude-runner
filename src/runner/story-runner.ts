@@ -12,6 +12,7 @@ import type { Logger } from "../logging/logger.js";
 import { LogSink } from "../logging/log-sink.js";
 import { Timer } from "../util/timer.js";
 import { deriveScope } from "../util/scope.js";
+import { createResumableWaiter } from "../util/resumable-waiter.js";
 import * as git from "../git/operations.js";
 import {
   killOrphanProjectProcesses,
@@ -58,62 +59,6 @@ async function logFailureDiagnostics(
       }
     } catch {}
   }
-}
-
-interface ResumableWaiter {
-  wait(ms: number): Promise<void>;
-  dispose(): void;
-}
-
-function createResumableWaiter(
-  sentinelPath: string
-): ResumableWaiter {
-  let resolver: (() => void) | null = null;
-  let timer: NodeJS.Timeout | null = null;
-  let watcher: ReturnType<typeof import("node:fs").watch> | null = null;
-
-  const onSignal = () => resolver?.();
-
-  process.on("SIGUSR1", onSignal);
-
-  return {
-    async wait(ms: number): Promise<void> {
-      return new Promise<void>((res) => {
-        resolver = res;
-        timer = setTimeout(res, ms);
-
-        try {
-          const { watch } = require("node:fs") as typeof import("node:fs");
-          const { dirname } = require("node:path") as typeof import("node:path");
-          const dir = dirname(sentinelPath);
-          mkdirSync(dir, { recursive: true });
-          watcher = watch(dir, (_, filename) => {
-            if (
-              filename === require("node:path").basename(sentinelPath) &&
-              existsSync(sentinelPath)
-            ) {
-              const { unlinkSync } = require("node:fs") as typeof import("node:fs");
-              try { unlinkSync(sentinelPath); } catch {}
-              res();
-            }
-          });
-        } catch {
-          // fs.watch not available — fall back to timeout only
-        }
-      }).finally(() => {
-        if (timer) clearTimeout(timer);
-        if (watcher) watcher.close();
-        watcher = null;
-        timer = null;
-        resolver = null;
-      });
-    },
-    dispose() {
-      process.removeListener("SIGUSR1", onSignal);
-      if (watcher) watcher.close();
-      if (timer) clearTimeout(timer);
-    },
-  };
 }
 
 export async function runStory(
