@@ -4,8 +4,6 @@ import { hasCommitForStory } from "./operations.js";
 
 export type SkipReason = "story-done" | "story-fixed" | "git-history" | "before-start";
 
-const DONE_STATUSES = ["✅ DONE", "✅ FIXED"];
-
 function readStoryStatus(storyFilePath: string): string | null {
   if (!existsSync(storyFilePath)) return null;
   const content = readFileSync(storyFilePath, "utf-8");
@@ -13,10 +11,14 @@ function readStoryStatus(storyFilePath: string): string | null {
   return match?.[1]?.trim() ?? null;
 }
 
+function statusMatches(status: string, keyword: string): boolean {
+  return status.toLowerCase().includes(keyword.toLowerCase());
+}
+
 export function isStoryDone(storyFilePath: string): boolean {
   const status = readStoryStatus(storyFilePath);
   if (!status) return false;
-  return DONE_STATUSES.some((s) => status.includes(s));
+  return statusMatches(status, "done") || statusMatches(status, "fixed");
 }
 
 export async function shouldSkipStory(
@@ -34,10 +36,10 @@ export async function shouldSkipStory(
   const storyFilePath = resolve(opts.projectPath, storyRelativePath);
   const status = readStoryStatus(storyFilePath);
 
-  if (status?.includes("✅ DONE")) {
+  if (status && statusMatches(status, "done")) {
     return { skip: true, reason: "story-done" };
   }
-  if (status?.includes("✅ FIXED")) {
+  if (status && statusMatches(status, "fixed")) {
     return { skip: true, reason: "story-fixed" };
   }
 

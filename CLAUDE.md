@@ -50,7 +50,7 @@ Projects live in `projects/<name>/` with:
 - `run-all.yaml` — epic execution order, optional epics
 - `epic-*.yaml` — story list and optional per-epic overrides
 
-Story skip detection uses `**Status:** ✅ DONE` / `✅ FIXED` markers in the story markdown, falling back to git log grep.
+Story skip detection uses `**Status:**` markers in the story markdown (case-insensitive match for "done" or "fixed"), falling back to git log grep by full story name or story ID in commit scope.
 
 ## Key design decisions
 

@@ -134,11 +134,26 @@ export async function hasCommitForStory(
   storyName: string
 ): Promise<boolean> {
   try {
+    // Try full story name first (e.g. "implement us-12.01-test-plan-management")
     const { stdout } = await git(
       ["log", "--oneline", `--grep=implement ${storyName}`],
       cwd
     );
-    return stdout.trim().length > 0;
+    if (stdout.trim().length > 0) return true;
+
+    // Fallback: match by story ID in commit scope (e.g. "feat(US-12.03):")
+    // Extract ID like "us-12.03" from "us-12.03-test-execution"
+    const idMatch = /^(us-\d+\.\d+)/i.exec(storyName);
+    if (idMatch) {
+      const storyId = idMatch[1]!.toUpperCase();
+      const { stdout: scopeOut } = await git(
+        ["log", "--oneline", `--grep=${storyId}`],
+        cwd
+      );
+      return scopeOut.trim().length > 0;
+    }
+
+    return false;
   } catch {
     return false;
   }
