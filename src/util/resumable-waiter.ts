@@ -19,8 +19,10 @@ export function createResumableWaiter(sentinelPath: string): ResumableWaiter {
   let tickTimer: NodeJS.Timeout | null = null;
 
   const onSignal = () => resolver?.();
+  const onCont = () => resolver?.();
 
   process.on("SIGUSR1", onSignal);
+  process.on("SIGCONT", onCont);
 
   return {
     async wait(ms: number, opts?: WaitOptions): Promise<void> {
@@ -29,28 +31,41 @@ export function createResumableWaiter(sentinelPath: string): ResumableWaiter {
       const tickInterval = opts?.tickIntervalMs ?? 300_000; // default 5 min
 
       return new Promise<void>((res) => {
-        resolver = res;
+        resolver = () => {
+          if (Date.now() >= deadline) res();
+        };
+
         timer = setTimeout(res, ms);
 
-        // Wall-clock guard: check every 30s whether the deadline has passed.
-        // setTimeout freezes during system suspend (WSL sleep, lid close).
-        // This interval fires on wake and catches the overshoot.
-        wallClockCheck = setInterval(() => {
-          if (Date.now() >= deadline) res();
-        }, 30_000);
+        // Wall-clock guard: recursive setTimeout (5s) instead of setInterval.
+        // Fresh timers are more reliable after system resume than stale intervals.
+        const scheduleWallCheck = () => {
+          wallClockCheck = setTimeout(() => {
+            if (Date.now() >= deadline) {
+              res();
+            } else {
+              scheduleWallCheck();
+            }
+          }, 5_000);
+        };
+        scheduleWallCheck();
 
         if (opts?.onTick) {
           const tick = opts.onTick;
-          tickTimer = setInterval(() => {
-            const now = Date.now();
-            if (now < deadline) {
-              tick({
-                remainingMs: deadline - now,
-                elapsedMs: now - startedAt,
-                resumeAt: new Date(deadline),
-              });
-            }
-          }, tickInterval);
+          const scheduleTick = () => {
+            tickTimer = setTimeout(() => {
+              const now = Date.now();
+              if (now < deadline) {
+                tick({
+                  remainingMs: deadline - now,
+                  elapsedMs: now - startedAt,
+                  resumeAt: new Date(deadline),
+                });
+                scheduleTick();
+              }
+            }, tickInterval);
+          };
+          scheduleTick();
         }
 
         try {
@@ -70,8 +85,8 @@ export function createResumableWaiter(sentinelPath: string): ResumableWaiter {
         }
       }).finally(() => {
         if (timer) clearTimeout(timer);
-        if (wallClockCheck) clearInterval(wallClockCheck);
-        if (tickTimer) clearInterval(tickTimer);
+        if (wallClockCheck) clearTimeout(wallClockCheck);
+        if (tickTimer) clearTimeout(tickTimer);
         if (watcher) watcher.close();
         watcher = null;
         wallClockCheck = null;
@@ -82,9 +97,10 @@ export function createResumableWaiter(sentinelPath: string): ResumableWaiter {
     },
     dispose() {
       process.removeListener("SIGUSR1", onSignal);
+      process.removeListener("SIGCONT", onCont);
       if (watcher) watcher.close();
-      if (wallClockCheck) clearInterval(wallClockCheck);
-      if (tickTimer) clearInterval(tickTimer);
+      if (wallClockCheck) clearTimeout(wallClockCheck);
+      if (tickTimer) clearTimeout(tickTimer);
       if (timer) clearTimeout(timer);
     },
   };
