@@ -13,11 +13,13 @@ epicOrder:
   - epic-12-qa-automation
   - epic-13-code-delivery
   - epic-14-observability
+  - epic-15-platform-polish
 
 optional:
   - epic-11-agent-improvement
   - epic-12-qa-automation
   - epic-13-code-delivery
   - epic-14-observability
+  - epic-15-platform-polish
 
 skipFailed: true

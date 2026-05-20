@@ -1,0 +1,11 @@
+epic:
+  name: "epic-15-platform-polish"
+
+stories:
+  - backlog/phase-5/epic-15-platform-polish/us-15.01-login-authentication-ui.md
+  - backlog/phase-5/epic-15-platform-polish/us-15.02-app-shell-navigation.md
+  - backlog/phase-5/epic-15-platform-polish/us-15.03-route-protection-error-handling.md
+  - backlog/phase-5/epic-15-platform-polish/us-15.04-frontend-style-consistency.md
+  - backlog/phase-5/epic-15-platform-polish/us-15.05-backend-admin-api-gaps.md
+  - backlog/phase-5/epic-15-platform-polish/us-15.06-developer-experience-docs.md
+  - backlog/phase-5/epic-15-platform-polish/us-15.07-celery-task-hardening.md
