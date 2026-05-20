@@ -309,7 +309,14 @@ export async function runStory(
             message: `${storyName} — sleeping ${waitMins}m (wait ${rsmState.quotaWaits}/${config.quotaMaxWaits})`,
             tags: "hourglass_flowing_sand",
           });
-          await waiter.wait(action.sleepMs);
+          await waiter.wait(action.sleepMs, {
+            onTick: ({ remainingMs, resumeAt }) => {
+              const remainMins = Math.ceil(remainingMs / 60_000);
+              logger.info(
+                `Quota pause: ~${remainMins}m remaining (resume at ${resumeAt.toLocaleTimeString()})`
+              );
+            },
+          });
           logger.info("Quota sleep over. Retrying...");
           continue;
         }
@@ -387,7 +394,14 @@ export async function runStory(
           message: `${storyName} — attempt ${rsmState.attempt}/${config.maxRetries}`,
           tags: "repeat",
         });
-        await waiter.wait(action.sleepMs);
+        await waiter.wait(action.sleepMs, {
+          onTick: ({ remainingMs, resumeAt }) => {
+            const remainMins = Math.ceil(remainingMs / 60_000);
+            logger.info(
+              `Retry wait: ~${remainMins}m remaining (resume at ${resumeAt.toLocaleTimeString()})`
+            );
+          },
+        });
       }
     }
   } finally {

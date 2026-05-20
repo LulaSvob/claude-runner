@@ -1,8 +1,13 @@
 import { existsSync, mkdirSync, watch, unlinkSync, type FSWatcher } from "node:fs";
 import { dirname, basename } from "node:path";
 
+export interface WaitOptions {
+  onTick?: (remaining: { remainingMs: number; elapsedMs: number; resumeAt: Date }) => void;
+  tickIntervalMs?: number;
+}
+
 export interface ResumableWaiter {
-  wait(ms: number): Promise<void>;
+  wait(ms: number, opts?: WaitOptions): Promise<void>;
   dispose(): void;
 }
 
@@ -11,14 +16,17 @@ export function createResumableWaiter(sentinelPath: string): ResumableWaiter {
   let timer: NodeJS.Timeout | null = null;
   let watcher: FSWatcher | null = null;
   let wallClockCheck: NodeJS.Timeout | null = null;
+  let tickTimer: NodeJS.Timeout | null = null;
 
   const onSignal = () => resolver?.();
 
   process.on("SIGUSR1", onSignal);
 
   return {
-    async wait(ms: number): Promise<void> {
+    async wait(ms: number, opts?: WaitOptions): Promise<void> {
       const deadline = Date.now() + ms;
+      const startedAt = Date.now();
+      const tickInterval = opts?.tickIntervalMs ?? 300_000; // default 5 min
 
       return new Promise<void>((res) => {
         resolver = res;
@@ -30,6 +38,20 @@ export function createResumableWaiter(sentinelPath: string): ResumableWaiter {
         wallClockCheck = setInterval(() => {
           if (Date.now() >= deadline) res();
         }, 30_000);
+
+        if (opts?.onTick) {
+          const tick = opts.onTick;
+          tickTimer = setInterval(() => {
+            const now = Date.now();
+            if (now < deadline) {
+              tick({
+                remainingMs: deadline - now,
+                elapsedMs: now - startedAt,
+                resumeAt: new Date(deadline),
+              });
+            }
+          }, tickInterval);
+        }
 
         try {
           const dir = dirname(sentinelPath);
@@ -49,9 +71,11 @@ export function createResumableWaiter(sentinelPath: string): ResumableWaiter {
       }).finally(() => {
         if (timer) clearTimeout(timer);
         if (wallClockCheck) clearInterval(wallClockCheck);
+        if (tickTimer) clearInterval(tickTimer);
         if (watcher) watcher.close();
         watcher = null;
         wallClockCheck = null;
+        tickTimer = null;
         timer = null;
         resolver = null;
       });
@@ -60,6 +84,7 @@ export function createResumableWaiter(sentinelPath: string): ResumableWaiter {
       process.removeListener("SIGUSR1", onSignal);
       if (watcher) watcher.close();
       if (wallClockCheck) clearInterval(wallClockCheck);
+      if (tickTimer) clearInterval(tickTimer);
       if (timer) clearTimeout(timer);
     },
   };

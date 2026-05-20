@@ -71,15 +71,23 @@ export async function runEpic(
     ) {
       const pct = Math.round(authResult.quotaUtilization * 100);
       const waitMins = Math.ceil(storyConfig.quotaWaitSeconds / 60);
+      const resumeAt = new Date(Date.now() + storyConfig.quotaWaitSeconds * 1000);
       logger.warn(
-        `Quota at ${pct}% (threshold ${Math.round(storyConfig.quotaPauseThreshold * 100)}%) — pausing ${waitMins}m before starting epic`
+        `Quota at ${pct}% (threshold ${Math.round(storyConfig.quotaPauseThreshold * 100)}%) — pausing ${waitMins}m before starting epic (resume at ${resumeAt.toLocaleTimeString()})`
       );
       await notifier.notifyStory({
         title: "Quota high — pausing before epic",
         message: `${epicName} — quota at ${pct}%, waiting ${waitMins}m`,
         tags: "hourglass_flowing_sand",
       });
-      await waiter.wait(storyConfig.quotaWaitSeconds * 1000);
+      await waiter.wait(storyConfig.quotaWaitSeconds * 1000, {
+        onTick: ({ remainingMs, resumeAt }) => {
+          const remainMins = Math.ceil(remainingMs / 60_000);
+          logger.info(
+            `Quota pause: ~${remainMins}m remaining (resume at ${resumeAt.toLocaleTimeString()})`
+          );
+        },
+      });
       logger.info("Quota pause over, starting epic...");
     } else {
       logger.info("Claude is ready");
@@ -174,15 +182,23 @@ export async function runEpic(
       ) {
         const pct = Math.round(outcome.quotaUtilization * 100);
         const waitMins = Math.ceil(storyConfig.quotaWaitSeconds / 60);
+        const resumeAt = new Date(Date.now() + storyConfig.quotaWaitSeconds * 1000);
         logger.warn(
-          `Quota at ${pct}% after ${storyName} — pausing ${waitMins}m before next story`
+          `Quota at ${pct}% after ${storyName} — pausing ${waitMins}m before next story (resume at ${resumeAt.toLocaleTimeString()})`
         );
         await notifier.notifyStory({
           title: "Quota high — pausing",
           message: `${storyName} done, quota at ${pct}%. Waiting ${waitMins}m.`,
           tags: "hourglass_flowing_sand",
         });
-        await waiter.wait(storyConfig.quotaWaitSeconds * 1000);
+        await waiter.wait(storyConfig.quotaWaitSeconds * 1000, {
+          onTick: ({ remainingMs, resumeAt }) => {
+            const remainMins = Math.ceil(remainingMs / 60_000);
+            logger.info(
+              `Quota pause: ~${remainMins}m remaining (resume at ${resumeAt.toLocaleTimeString()})`
+            );
+          },
+        });
         logger.info("Quota pause over, continuing...");
       }
     } else if (outcome.status === "failed") {
