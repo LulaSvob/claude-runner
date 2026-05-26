@@ -1,0 +1,19 @@
+epic:
+  name: "epic-16-post-alpha-polish"
+
+stories:
+  - backlog/phase-6/epic-16-post-alpha-polish/us-16.01-notification-backend-api.md
+  - backlog/phase-6/epic-16-post-alpha-polish/us-16.02-notification-bell-dropdown.md
+  - backlog/phase-6/epic-16-post-alpha-polish/us-16.03-approval-detail-action-page.md
+  - backlog/phase-6/epic-16-post-alpha-polish/us-16.04-approval-list-tracking-view.md
+  - backlog/phase-6/epic-16-post-alpha-polish/us-16.05-pipeline-edit-mode.md
+  - backlog/phase-6/epic-16-post-alpha-polish/us-16.06-pipeline-deletion.md
+  - backlog/phase-6/epic-16-post-alpha-polish/us-16.07-project-scoped-breadcrumbs.md
+  - backlog/phase-6/epic-16-post-alpha-polish/us-16.08-realtime-jira-scope-resolution.md
+  - backlog/phase-6/epic-16-post-alpha-polish/us-16.09-pipeline-scoped-jira-sync.md
+  - backlog/phase-6/epic-16-post-alpha-polish/us-16.10-adhoc-pipeline-execution.md
+  - backlog/phase-6/epic-16-post-alpha-polish/us-16.11-jira-api-v3-compatibility-audit.md
+  - backlog/phase-6/epic-16-post-alpha-polish/us-16.12-user-badge-settings-dropdown.md
+  - backlog/phase-6/epic-16-post-alpha-polish/us-16.13-feedback-proposal-list-pages.md
+  - backlog/phase-6/epic-16-post-alpha-polish/us-16.14-agent-version-activate-rollback-ui.md
+  - backlog/phase-6/epic-16-post-alpha-polish/us-16.15-codebase-structural-cleanup.md

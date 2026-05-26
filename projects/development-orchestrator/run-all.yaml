@@ -14,6 +14,7 @@ epicOrder:
   - epic-13-code-delivery
   - epic-14-observability
   - epic-15-platform-polish
+  - epic-16-post-alpha-polish
 
 optional:
   - epic-11-agent-improvement

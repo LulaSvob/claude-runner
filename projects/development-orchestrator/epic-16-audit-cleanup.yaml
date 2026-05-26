@@ -1,0 +1,7 @@
+epic:
+  name: "epic-16-audit-cleanup"
+
+stories:
+  - backlog/phase-6/epic-16-post-alpha-polish/us-16.15-codebase-structural-cleanup.md
+  - backlog/phase-6/epic-16-post-alpha-polish/us-16.13-feedback-proposal-list-pages.md
+  - backlog/phase-6/epic-16-post-alpha-polish/us-16.14-agent-version-activate-rollback-ui.md
