@@ -141,13 +141,13 @@ export async function hasCommitForStory(
     );
     if (stdout.trim().length > 0) return true;
 
-    // Fallback: match by story ID in commit scope (e.g. "feat(US-12.03):")
+    // Fallback: match by story ID in conventional-commit scope (e.g. "feat(US-12.03):")
     // Extract ID like "us-12.03" from "us-12.03-test-execution"
     const idMatch = /^(us-\d+\.\d+)/i.exec(storyName);
     if (idMatch) {
       const storyId = idMatch[1]!.toUpperCase();
       const { stdout: scopeOut } = await git(
-        ["log", "--oneline", `--grep=${storyId}`],
+        ["log", "--oneline", `--grep=(${storyId})`],
         cwd
       );
       return scopeOut.trim().length > 0;
