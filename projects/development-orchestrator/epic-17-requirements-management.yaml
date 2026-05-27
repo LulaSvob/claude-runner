@@ -1,0 +1,13 @@
+epic:
+  name: "epic-17-requirements-management"
+
+stories:
+  - backlog/phase-7/epic-17-requirements-management/us-17.01-requirement-data-model-api.md
+  - backlog/phase-7/epic-17-requirements-management/us-17.02-sprint-model-api.md
+  - backlog/phase-7/epic-17-requirements-management/us-17.03-backlog-management-page.md
+  - backlog/phase-7/epic-17-requirements-management/us-17.04-kanban-board-view.md
+  - backlog/phase-7/epic-17-requirements-management/us-17.05-requirement-detail-page.md
+  - backlog/phase-7/epic-17-requirements-management/us-17.06-comments-activity-feed.md
+  - backlog/phase-7/epic-17-requirements-management/us-17.07-sprint-management-ui.md
+  - backlog/phase-7/epic-17-requirements-management/us-17.08-requirement-hierarchy-epic-view.md
+  - backlog/phase-7/epic-17-requirements-management/us-17.09-board-configuration-labels.md

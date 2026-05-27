@@ -15,6 +15,9 @@ epicOrder:
   - epic-14-observability
   - epic-15-platform-polish
   - epic-16-post-alpha-polish
+  - epic-17-requirements-management
+  - epic-18-test-management
+  - epic-19-pipeline-execution-correctness
 
 optional:
   - epic-11-agent-improvement

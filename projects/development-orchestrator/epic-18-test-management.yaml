@@ -1,0 +1,13 @@
+epic:
+  name: "epic-18-test-management"
+
+stories:
+  - backlog/phase-7/epic-18-test-management/us-18.01-test-management-data-model-api.md
+  - backlog/phase-7/epic-18-test-management/us-18.02-remove-confluence-qa-dependencies.md
+  - backlog/phase-7/epic-18-test-management/us-18.03-test-suite-management-ui.md
+  - backlog/phase-7/epic-18-test-management/us-18.04-test-case-editor.md
+  - backlog/phase-7/epic-18-test-management/us-18.05-test-plan-builder.md
+  - backlog/phase-7/epic-18-test-management/us-18.06-test-run-management.md
+  - backlog/phase-7/epic-18-test-management/us-18.07-manual-test-execution-interface.md
+  - backlog/phase-7/epic-18-test-management/us-18.08-requirements-traceability-matrix.md
+  - backlog/phase-7/epic-18-test-management/us-18.09-test-dashboard-reporting.md

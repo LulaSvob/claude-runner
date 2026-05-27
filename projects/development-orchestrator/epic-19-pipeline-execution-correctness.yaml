@@ -1,0 +1,7 @@
+epic:
+  name: "epic-19-pipeline-execution-correctness"
+
+stories:
+  - backlog/phase-7/epic-19-pipeline-execution-correctness/us-19.01-target-project-workspace-routing.md
+  - backlog/phase-7/epic-19-pipeline-execution-correctness/us-19.02-real-jira-task-context.md
+  - backlog/phase-7/epic-19-pipeline-execution-correctness/us-19.03-consume-bound-work-items.md
