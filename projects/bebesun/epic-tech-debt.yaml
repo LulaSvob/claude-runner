@@ -1,0 +1,12 @@
+epic:
+  name: "tech-debt"
+
+# Technical debt td-195 through td-200 (dead-code removal sweep + i18n hardcoded strings).
+
+stories:
+  - backlog/mvp/technical-debt/td-195-remove-half-built-feature-chains.md
+  - backlog/mvp/technical-debt/td-196-resolve-unwired-async-layer.md
+  - backlog/mvp/technical-debt/td-197-remove-zero-reference-symbols.md
+  - backlog/mvp/technical-debt/td-198-remove-production-dead-but-tested.md
+  - backlog/mvp/technical-debt/td-199-restrict-verbs-and-import-sweep.md
+  - backlog/mvp/technical-debt/td-200-i18n-hardcoded-strings.md

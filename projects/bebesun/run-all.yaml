@@ -1,0 +1,5 @@
+epicOrder:
+  - epic-bugs
+  - epic-tech-debt
+
+skipFailed: false

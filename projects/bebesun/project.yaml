@@ -1,0 +1,18 @@
+project:
+  name: "bebesun"
+  path: "/home/lubo/projects/bebesun"
+  branch: "develop"
+
+promptTemplate: "/flow @{storyPath}"
+
+git:
+  commitTemplate: "feat({scope}): implement {storyName}"
+  coAuthor: "Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
+  protectedBranches: ["main", "master"]
+  autoCommit: true
+  autoPush: true
+
+notify:
+  ntfy:
+    storyTopic: "lubos-bebesun-epic-runner"
+    runAllTopic: "lubos-bebesun-run-all"
